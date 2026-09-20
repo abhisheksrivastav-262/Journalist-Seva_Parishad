@@ -408,21 +408,27 @@ function wireEditor(){
   const d=$("#ed-desc"); if(d) edCount(d);
 }
 window.edCount=function(t){ const c=$("#ed-count"); if(c) c.textContent=(t.value||"").length+" अक्षर"; };
+function imgSrc(p){ p=String(p||""); return (p.startsWith("http://")||p.startsWith("https://"))?p:"/"+p.replace(/^\/+/,""); }
+async function uploadFile(f, folder){
+  toast("Uploading…");
+  const s=await api("/api/media/sign",{method:"POST",body:JSON.stringify({name:f.name,mime:f.type||"image/jpeg",folder:folder||"gallery"})});
+  const put=await fetch(s.uploadUrl,{method:"PUT",headers:{"Content-Type":f.type||"image/jpeg","x-upsert":"true"},body:f});
+  if(!put.ok) throw new Error("Storage upload failed ("+put.status+")");
+  const r=await api("/api/media/register",{method:"POST",body:JSON.stringify({path:s.path,key:s.key,name:f.name,mime:f.type||"image/jpeg",size:f.size||0,folder:folder||"gallery"})});
+  return r;
+}
 async function uploadEdFile(f){
-  if(!f) return; toast("Uploading…");
-  const buf=await f.arrayBuffer(); let b64=""; const bytes=new Uint8Array(buf);
-  for(let i=0;i<bytes.length;i+=0x8000) b64+=String.fromCharCode.apply(null,bytes.subarray(i,i+0x8000));
-  const mime=f.type==="image/png"?"image/png":f.type==="image/webp"?"image/webp":"image/jpeg";
-  try{ const d=await api("/api/upload",{method:"POST",body:JSON.stringify({name:f.name,folder:(($("#ed-folder")||{}).value)||"gallery",data:`data:${mime};base64,${btoa(b64)}`})});
+  if(!f) return;
+  try{ const d=await uploadFile(f,(($("#ed-folder")||{}).value)||"gallery");
     setEdImg(d.path); toast("Uploaded ✓");
   }catch(e){ toast(e.message); }
 }
-function setEdImg(p){ const h=$("#ed-img"); if(h) h.value=p; const im=$("#ed-preview"); if(im){ im.src="/"+p; im.style.display=""; } const em=$("#ed-empty"); if(em) em.style.display="none"; }
+function setEdImg(p){ const h=$("#ed-img"); if(h) h.value=p; const im=$("#ed-preview"); if(im){ im.src=imgSrc(p); im.style.display=""; } const em=$("#ed-empty"); if(em) em.style.display="none"; }
 window.clearEdImg=function(){ const h=$("#ed-img"); if(h) h.value=""; const im=$("#ed-preview"); if(im) im.style.display="none"; const em=$("#ed-empty"); if(em) em.style.display=""; };
 window.openPicker=async function(){
   const d=await api("/api/media");
   const imgs=d.files.filter(f=>!f.path.endsWith(".mp4"));
-  openModal(`<h2>🖼 Library से चुनें</h2><div class="media-grid">${imgs.map(f=>`<figure style="cursor:pointer" onclick="pickImg('${f.path}')"><img src="/${f.path}" loading="lazy"><figcaption>${f.path.split("/").pop()}</figcaption></figure>`).join("")||'<p class="mut">कोई photo नहीं — ऊपर Choose File से upload करें।</p>'}</div><div style="margin-top:12px"><button class="btn btn-g" onclick="closeModal()">Cancel</button></div>`);
+  openModal(`<h2>🖼 Library से चुनें</h2><div class="media-grid">${imgs.map(f=>`<figure style="cursor:pointer" onclick="pickImg('${f.path}')"><img src="${imgSrc(f.path)}" loading="lazy"><figcaption>${f.path.split("/").pop()}</figcaption></figure>`).join("")||'<p class="mut">कोई photo नहीं — ऊपर Choose File से upload करें।</p>'}</div><div style="margin-top:12px"><button class="btn btn-g" onclick="closeModal()">Cancel</button></div>`);
 };
 window.pickImg=function(p){ setEdImg(p); closeModal(); };
 function gatherEditor(key){
@@ -543,12 +549,8 @@ function vIdCard(){
 window.idcMode=function(){ const m=(($("#idc-mode")||{}).value)||"pick"; const p=$("#idc-pick"),f=$("#idc-form"); if(p)p.style.display=m==="pick"?"":"none"; if(f)f.style.display=m==="form"?"":"none"; const o=$("#idc-out"); if(o)o.innerHTML=""; };
 window.idcUpload=async function(){
   const fi=$("#idc-file"); const f=fi&&fi.files[0]; if(!f){ toast("पहले Choose File से photo चुनें"); return; }
-  toast("Uploading…");
-  const buf=await f.arrayBuffer(); let b64=""; const bytes=new Uint8Array(buf);
-  for(let i=0;i<bytes.length;i+=0x8000) b64+=String.fromCharCode.apply(null,bytes.subarray(i,i+0x8000));
-  const mime=f.type==="image/png"?"image/png":f.type==="image/webp"?"image/webp":"image/jpeg";
-  try{ const d=await api("/api/upload",{method:"POST",body:JSON.stringify({name:f.name,folder:"misc",data:`data:${mime};base64,${btoa(b64)}`})});
-    $("#idc-img").value=d.path; $("#idc-prev").innerHTML=`<img src="/${d.path}" style="max-width:120px;border-radius:10px">`; toast("Uploaded ✓");
+  try{ const d=await uploadFile(f,"misc");
+    $("#idc-img").value=d.path; $("#idc-prev").innerHTML=`<img src="${imgSrc(d.path)}" style="max-width:120px;border-radius:10px">`; toast("Uploaded ✓");
   }catch(e){ toast(e.message); }
 };
 window.idcData=function(){
@@ -601,16 +603,12 @@ async function vMedia(){
     <select id="upFolder"><option value="gallery">gallery</option><option value="leaders">leaders</option><option value="video">video (mp4)</option><option value="misc">misc</option></select>
     <input type="file" id="upFile" accept="image/*,video/mp4"><button class="btn btn-b btn-sm" onclick="doUpload()">⬆ Upload</button>
   </div><p class="mut">Upload करते ही <b>नाम/Caption भरकर सीधे page पर लगाएं</b> — Save = LIVE। Delete से पहले usage check करें।</p>
-  <div class="media-grid">${MEDIA.map((f,i)=>`<figure>${f.path.endsWith(".mp4")?`<video src="/${f.path}" preload="metadata"></video>`:`<img src="/${f.path}" loading="lazy">`}<figcaption>${f.path}<br>${(f.size/1024).toFixed(0)} KB<br><button class="btn btn-g btn-sm" onclick="copyPath('${f.path}')">Copy</button> <button class="btn btn-b btn-sm" onclick="openPlace('${f.path}')">➕ लगाएं</button> <button class="btn btn-r btn-sm" onclick="delMedia('${f.path}')">Del</button></figcaption></figure>`).join("")}</div></div>`;
+  <div class="media-grid">${MEDIA.map((f,i)=>`<figure>${f.path.endsWith(".mp4")?`<video src="${imgSrc(f.path)}" preload="metadata"></video>`:`<img src="${imgSrc(f.path)}" loading="lazy">`}<figcaption>${f.path}<br>${(f.size/1024).toFixed(0)} KB<br><button class="btn btn-g btn-sm" onclick="copyPath('${f.path}')">Copy</button> <button class="btn btn-b btn-sm" onclick="openPlace('${f.path}')">➕ लगाएं</button> <button class="btn btn-r btn-sm" onclick="delMedia('${f.path}')">Del</button></figcaption></figure>`).join("")}</div></div>`;
 }
 window.copyPath=p=>{ navigator.clipboard.writeText(p); toast("Copied: "+p); };
 window.doUpload=async function(){
   const f=$("#upFile").files[0]; if(!f){ toast("File चुनें"); return; }
-  toast("Uploading…");
-  const buf=await f.arrayBuffer();
-  let b64=""; const bytes=new Uint8Array(buf); for(let i=0;i<bytes.length;i+=0x8000) b64+=String.fromCharCode.apply(null,bytes.subarray(i,i+0x8000));
-  const mime=f.type==="video/mp4"?"video/mp4":f.type==="image/png"?"image/png":f.type==="image/webp"?"image/webp":f.type==="image/svg+xml"?"image/svg+xml":"image/jpeg";
-  try{ const d=await api("/api/upload",{method:"POST",body:JSON.stringify({name:f.name,folder:$("#upFolder").value,data:`data:${mime};base64,${btoa(b64)}`})});
+  try{ const d=await uploadFile(f,$("#upFolder").value);
     toast("Uploaded ✓"); vMedia(); openPlace(d.path);
   }catch(e){ toast(e.message); }
 };
@@ -629,17 +627,13 @@ function attachImgUploads(){
     box.style.cssText="border:2px dashed var(--royal);border-radius:12px;padding:14px;margin:10px 0;background:#f4f7ff";
     box.innerHTML=`<b>📷 Photo upload करें (Choose File)</b><div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center"><input type="file" accept="image/*" style="flex:1;min-width:160px"><select style="flex:0 0 120px"><option value="gallery">gallery</option><option value="leaders">leaders</option><option value="misc">misc</option></select><button type="button" class="btn btn-b">⬆ Upload</button></div><div class="prev" style="margin-top:8px"></div>`;
     const sel=box.querySelector("select"), fi=box.querySelector('input[type="file"]'), btn=box.querySelector("button"), prev=box.querySelector(".prev");
-    if(inp.value) prev.innerHTML=`<img src="/${inp.value}" style="max-width:100%;max-height:160px;border-radius:10px">`;
+    if(inp.value) prev.innerHTML=`<img src="${imgSrc(inp.value)}" style="max-width:100%;max-height:160px;border-radius:10px">`;
     btn.onclick=async ()=>{
       const f=fi.files[0]; if(!f){ toast("पहले Choose File से photo चुनें"); return; }
       btn.textContent="…";
       try{
-        const buf=await f.arrayBuffer();
-        let b64=""; const bytes=new Uint8Array(buf);
-        for(let i=0;i<bytes.length;i+=0x8000) b64+=String.fromCharCode.apply(null,bytes.subarray(i,i+0x8000));
-        const mime=f.type==="image/png"?"image/png":f.type==="image/webp"?"image/webp":"image/jpeg";
-        const d=await api("/api/upload",{method:"POST",body:JSON.stringify({name:f.name,folder:sel.value,data:`data:${mime};base64,${btoa(b64)}`})});
-        inp.value=d.path; prev.innerHTML=`<img src="/${d.path}" style="max-width:100%;max-height:160px;border-radius:10px">`; toast("Uploaded ✓ — path भर गया");
+        const d=await uploadFile(f,sel.value);
+        inp.value=d.path; prev.innerHTML=`<img src="${imgSrc(d.path)}" style="max-width:100%;max-height:160px;border-radius:10px">`; toast("Uploaded ✓ — path भर गया");
       }catch(e){ toast(e.message); }
       btn.textContent="⬆ Upload";
     };
@@ -708,12 +702,8 @@ window.saveBank=async function(){
 };
 window.qrUpload=async function(){
   const fi=$("#qrFile"); const f=fi&&fi.files[0]; if(!f){ toast("पहले Choose File से QR चुनें"); return; }
-  toast("Uploading…");
-  const buf=await f.arrayBuffer(); let b64=""; const bytes=new Uint8Array(buf);
-  for(let i=0;i<bytes.length;i+=0x8000) b64+=String.fromCharCode.apply(null,bytes.subarray(i,i+0x8000));
-  const mime=f.type==="image/png"?"image/png":f.type==="image/webp"?"image/webp":"image/jpeg";
-  try{ const d=await api("/api/upload",{method:"POST",body:JSON.stringify({name:f.name,folder:"misc",data:`data:${mime};base64,${btoa(b64)}`})});
-    $("#qrPath").value=d.path; $("#qrPrev").innerHTML=`<img src="/${d.path}" style="max-width:150px;border-radius:10px">`; toast("Uploaded ✓");
+  try{ const d=await uploadFile(f,"misc");
+    $("#qrPath").value=d.path; $("#qrPrev").innerHTML=`<img src="${imgSrc(d.path)}" style="max-width:150px;border-radius:10px">`; toast("Uploaded ✓");
   }catch(e){ toast(e.message); }
 };
 window.saveDonate=async function(){

@@ -1,0 +1,33 @@
+{
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs24.x"
+    }
+  },
+  "rewrites": [
+    { "source": "/admin", "destination": "/admin/panel.html" },
+    { "source": "/health", "destination": "/api/health" },
+    { "source": "/api/login", "destination": "/api/auth-login" },
+    { "source": "/api/logout", "destination": "/api/auth-logout" },
+    { "source": "/api/me", "destination": "/api/auth-me" },
+    { "source": "/api/data", "destination": "/api/admin-data" },
+    { "source": "/api/save", "destination": "/api/admin-save" },
+    { "source": "/api/media", "destination": "/api/admin-media" },
+    { "source": "/api/media/sign", "destination": "/api/admin-media" },
+    { "source": "/api/media/register", "destination": "/api/admin-media" },
+    { "source": "/api/media-delete", "destination": "/api/admin-media" },
+    { "source": "/api/media-usage", "destination": "/api/admin-media" },
+    { "source": "/api/inbox.csv", "destination": "/api/admin-inbox" },
+    { "source": "/api/inbox/:id", "destination": "/api/admin-inbox" },
+    { "source": "/api/inbox", "destination": "/api/admin-inbox" },
+    { "source": "/api/users", "destination": "/api/admin-users" },
+    { "source": "/api/user-save", "destination": "/api/admin-users" },
+    { "source": "/api/user-delete", "destination": "/api/admin-users" },
+    { "source": "/api/password", "destination": "/api/admin-users" },
+    { "source": "/api/publish", "destination": "/api/admin-publish" },
+    { "source": "/api/backups", "destination": "/api/admin-backup" },
+    { "source": "/api/rollback", "destination": "/api/admin-backup" },
+    { "source": "/api/preview", "destination": "/api/admin-preview" },
+    { "source": "/api/public/content", "destination": "/api/public-content" }
+  ]
+}
