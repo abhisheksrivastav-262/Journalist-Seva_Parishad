@@ -87,7 +87,10 @@ module.exports = async (request, response) => {
       const s = sanitize(b.name, b.folder);
       const key = s.folder + "/" + s.base + ext;
       const r = await signKey(env, key, 600);
-      if (!r.ok || !r.json || !r.json.signedUrl) return sendJson(response, 502, { error: "sign failed" });
+      if (!r.ok || !r.json || !r.json.signedUrl) {
+        const why = r.skipped ? "Vercel me SUPABASE_SECRET_KEY set nahi hai" : ("storage status " + (r.status || r.error || "unknown"));
+        return sendJson(response, 502, { error: "sign failed (" + why + ")" });
+      }
       const base = env.SUPABASE_URL.replace(/\/$/, "");
       const uploadUrl = r.json.signedUrl.startsWith("http") ? r.json.signedUrl : base + r.json.signedUrl;
       return sendJson(response, 200, { uploadUrl, path: pubUrl(env, key), key });
