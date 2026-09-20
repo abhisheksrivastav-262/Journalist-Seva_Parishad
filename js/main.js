@@ -55,7 +55,9 @@
       const fd = new FormData(mform);
       const v = k=>String(fd.get(k)||"").trim();
       const mobile = v("mobile").replace(/\D/g,"");
+      const aadhaar = v("aadhaar").replace(/\D/g,"");
       if(!v("name")||mobile.length<10){ alert("कृपया सही नाम और 10 अंकों का मोबाइल नंबर भरें।"); return; }
+      if(!/^[2-9][0-9]{11}$/.test(aadhaar)){ alert("कृपया सही 12 अंकों का आधार नंबर भरें।"); return; }
       const purpose = v("purpose") || "सदस्यता आवेदन";
       const isDonate = purpose.indexOf("दान") === 0;
       if(isDonate && !(Number(v("amount"))>0)){ alert("कृपया दान की राशि (₹) भरें।"); return; }
@@ -66,6 +68,7 @@
         "उद्देश्य: " + purpose,
         "पूरा नाम: "+v("name"),
         "मोबाइल नंबर: "+v("mobile"),
+        "आधार नंबर: "+aadhaar.replace(/(\d{4})(\d{4})(\d{4})/,"$1 $2 $3"),
         "ईमेल: "+(v("email")||"-"),
         "शहर: "+(v("city")||"-"),
         "जिला: "+(v("district")||"-"),
@@ -79,7 +82,7 @@
         isDonate ? "कृपया भुगतान की पुष्टि करें।" : "कृपया सदस्यता प्रक्रिया की जानकारी दें।"
       ];
       $("#formStatus") && ($("#formStatus").textContent = "WhatsApp खुल रहा है… कृपया Send दबाकर आवेदन भेजें।");
-      saveInbox(isDonate?"donate":"membership",{purpose:purpose,name:v("name"),mobile:v("mobile"),email:v("email"),city:v("city"),district:v("district"),state:v("state"),org:v("org"),role:v("role"),exp:v("exp"),message:v("message"),amount:v("amount"),utr:v("utr")});
+      saveInbox(isDonate?"donate":"membership",{purpose:purpose,name:v("name"),mobile:v("mobile"),aadhaar:aadhaar,email:v("email"),city:v("city"),district:v("district"),state:v("state"),org:v("org"),role:v("role"),exp:v("exp"),message:v("message"),amount:v("amount"),utr:v("utr")});
       openWhatsApp(lines.join("\n"));
     });
     // Donate box toggle + #donate preselect + submit text swap

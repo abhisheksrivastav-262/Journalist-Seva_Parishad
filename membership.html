@@ -47,7 +47,7 @@
 </div>
 <div class="form-card reveal">
 <h2 style="margin-top:0">सदस्यता आवेदन फॉर्म</h2>
-<p class="hint">* चिह्नित फ़ील्ड आवश्यक हैं। जानकारी केवल सदस्यता संपर्क हेतु उपयोग होगी।</p>
+<p class="hint">* चिह्नित फ़ील्ड आवश्यक हैं। जानकारी केवल सदस्यता संपर्क व सत्यापन हेतु उपयोग होगी।</p>
 <form id="membershipForm" novalidate>
 <div class="field full" style="margin-bottom:14px">
 <label>उद्देश्य चुनें *</label>
@@ -78,6 +78,7 @@
 <div class="form-grid">
 <div class="field"><label for="m-name">पूरा नाम *</label><input id="m-name" name="name" required autocomplete="name" placeholder="आपका पूरा नाम"></div>
 <div class="field"><label for="m-mobile">मोबाइल नंबर *</label><input id="m-mobile" name="mobile" required inputmode="numeric" pattern="[0-9+ ]{10,15}" placeholder="10 अंकों का मोबाइल"></div>
+<div class="field"><label for="m-aadhaar">आधार नंबर *</label><input id="m-aadhaar" name="aadhaar" required inputmode="numeric" pattern="[0-9]{12}" maxlength="12" placeholder="12 अंकों का आधार नंबर"></div>
 <div class="field"><label for="m-email">ईमेल</label><input id="m-email" name="email" type="email" autocomplete="email" placeholder="you@example.com"></div>
 <div class="field"><label for="m-city">शहर</label><input id="m-city" name="city" placeholder="जैसे — कानपुर"></div>
 <div class="field"><label for="m-dist">जिला</label><input id="m-dist" name="district" placeholder="जिला"></div>

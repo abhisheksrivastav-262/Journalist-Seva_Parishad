@@ -318,7 +318,7 @@ async function mirrorInboxEntry(entry){
     const d=entry.data||{};
     let table,row;
     if(entry.type==="contact"){ table="contact_messages"; row={name:d.name||"",mobile:d.mobile||"",email:d.email||"",subject:d.subject||"",message:d.message||"",status:sbStatus(entry.status)}; }
-    else { table="membership_applications"; row={name:d.name||"",mobile:d.mobile||"",email:d.email||"",city:d.city||"",district:d.district||"",state:d.state||"",media_organization:d.org||"",designation:d.role||"",journalism_experience:d.exp||"",message:d.message||"",status:sbStatus(entry.status)}; }
+    else { table="membership_applications"; row={name:d.name||"",mobile:d.mobile||"",aadhaar:String(d.aadhaar||"").replace(/\D/g,"").slice(0,12),email:d.email||"",city:d.city||"",district:d.district||"",state:d.state||"",media_organization:d.org||"",designation:d.role||"",journalism_experience:d.exp||"",message:d.message||"",status:sbStatus(entry.status)}; }
     const r=await sbReq("POST","/rest/v1/"+table,row,true);
     if(r.ok&&r.json&&r.json[0]&&r.json[0].id){ entry.sbid=r.json[0].id; entry.sbtable=table; try{saveDB();}catch(e){} }
     else sbLog("inbox mirror failed",table+" "+(r.status||""));

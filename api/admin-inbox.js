@@ -15,7 +15,7 @@ function panelStatus(s) {
 function toPanel(type, r) {
   const d = type === "contact"
     ? { name: r.name || "", mobile: r.mobile || "", email: r.email || "", subject: r.subject || "", message: r.message || "" }
-    : { name: r.name || "", mobile: r.mobile || "", email: r.email || "", city: r.city || "", district: r.district || "", state: r.state || "", org: r.media_organization || "", role: r.designation || "", exp: r.journalism_experience || "", message: r.message || "" };
+    : { name: r.name || "", mobile: r.mobile || "", aadhaar: r.aadhaar || "", email: r.email || "", city: r.city || "", district: r.district || "", state: r.state || "", org: r.media_organization || "", role: r.designation || "", exp: r.journalism_experience || "", message: r.message || "" };
   return { id: type + ":" + r.id, t: r.created_at ? Date.parse(r.created_at) : Date.now(), type, status: panelStatus(r.status), data: d };
 }
 function parseId(id) {
@@ -85,9 +85,16 @@ module.exports = async (request, response) => {
         row = { name: d.name || "", mobile: d.mobile || "", email: d.email || "", subject: d.subject || "", message: d.message || "", status: sbStatus("new") };
       } else {
         table = "membership_applications";
-        row = { name: d.name || "", mobile: d.mobile || "", email: d.email || "", city: d.city || "", district: d.district || "", state: d.state || "", media_organization: d.org || "", designation: d.role || "", journalism_experience: d.exp || "", message: d.message || "", status: sbStatus("new") };
+        row = { name: d.name || "", mobile: d.mobile || "", aadhaar: String(d.aadhaar || "").replace(/\D/g, "").slice(0, 12), email: d.email || "", city: d.city || "", district: d.district || "", state: d.state || "", media_organization: d.org || "", designation: d.role || "", journalism_experience: d.exp || "", message: d.message || "", status: sbStatus("new") };
       }
-      const r = await sbReq(env, "POST", "/rest/v1/" + table, row, true);
+      let r = await sbReq(env, "POST", "/rest/v1/" + table, row, true);
+      if (!r.ok && r.status === 400 && row.aadhaar !== undefined) {
+        // aadhaar column not added in Supabase yet → keep data safe inside message
+        const fallback = { ...row };
+        delete fallback.aadhaar;
+        if (row.aadhaar) fallback.message = [fallback.message, "आधार नंबर: " + row.aadhaar].filter(Boolean).join("\n");
+        r = await sbReq(env, "POST", "/rest/v1/" + table, fallback, true);
+      }
       if (!r.ok) return sendJson(response, 502, { error: "submission failed, please try WhatsApp" });
       return sendJson(response, 200, { ok: true });
     }
