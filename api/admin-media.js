@@ -85,10 +85,11 @@ module.exports = async (request, response) => {
       if (!ext) return sendJson(response, 400, { error: "sirf jpg/png/webp/svg/mp4" });
       if (mime.startsWith("video") && (b.folder || "") !== "video") return sendJson(response, 400, { error: "video sirf video folder me" });
       const s = sanitize(b.name, b.folder);
-      const key = s.folder + "/" + s.base + ext;
+      const key = s.folder + "/" + s.base + "-" + Date.now().toString(36) + ext;
       const r = await signKey(env, key, 600);
       if (!r.ok || !r.json || !r.json.signedUrl) {
-        const why = r.skipped ? "Vercel me SUPABASE_SECRET_KEY set nahi hai" : ("storage status " + (r.status || r.error || "unknown"));
+        const detail = r.json && (r.json.message || r.json.error) ? " - " + (r.json.message || r.json.error) : "";
+        const why = r.skipped ? "Vercel me SUPABASE_SECRET_KEY set nahi hai" : ("storage status " + (r.status || r.error || "unknown") + detail);
         return sendJson(response, 502, { error: "sign failed (" + why + ")" });
       }
       const base = env.SUPABASE_URL.replace(/\/$/, "");
