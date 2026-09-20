@@ -74,6 +74,23 @@ module.exports = async (request, response) => {
       inbox.sort((a, b) => b.t - a.t);
       return sendJson(response, 200, { inbox });
     }
+    // POST /api/inbox — PUBLIC form submissions (no auth; contact + membership/donate)
+    if (pathn === "/api/inbox" && request.method === "POST") {
+      const b = (await readJson(request)) || {};
+      const d = (b && b.data) || {};
+      const type = b.type || "form";
+      let table, row;
+      if (type === "contact") {
+        table = "contact_messages";
+        row = { name: d.name || "", mobile: d.mobile || "", email: d.email || "", subject: d.subject || "", message: d.message || "", status: sbStatus("new") };
+      } else {
+        table = "membership_applications";
+        row = { name: d.name || "", mobile: d.mobile || "", email: d.email || "", city: d.city || "", district: d.district || "", state: d.state || "", media_organization: d.org || "", designation: d.role || "", journalism_experience: d.exp || "", message: d.message || "", status: sbStatus("new") };
+      }
+      const r = await sbReq(env, "POST", "/rest/v1/" + table, row, true);
+      if (!r.ok) return sendJson(response, 502, { error: "submission failed, please try WhatsApp" });
+      return sendJson(response, 200, { ok: true });
+    }
     return sendJson(response, 404, { error: "not found" });
   } catch (e) { return sendJson(response, 500, { error: "server error" }); }
 };

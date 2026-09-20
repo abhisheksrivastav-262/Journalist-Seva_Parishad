@@ -2,9 +2,9 @@
   "rewrites": [
     { "source": "/admin", "destination": "/admin/panel.html" },
     { "source": "/health", "destination": "/api/health" },
-    { "source": "/api/login", "destination": "/api/auth-login" },
-    { "source": "/api/logout", "destination": "/api/auth-logout" },
-    { "source": "/api/me", "destination": "/api/auth-me" },
+    { "source": "/api/login", "destination": "/api/auth" },
+    { "source": "/api/logout", "destination": "/api/auth" },
+    { "source": "/api/me", "destination": "/api/auth" },
     { "source": "/api/data", "destination": "/api/admin-data" },
     { "source": "/api/save", "destination": "/api/admin-save" },
     { "source": "/api/media", "destination": "/api/admin-media" },
@@ -19,10 +19,10 @@
     { "source": "/api/user-save", "destination": "/api/admin-users" },
     { "source": "/api/user-delete", "destination": "/api/admin-users" },
     { "source": "/api/password", "destination": "/api/admin-users" },
-    { "source": "/api/publish", "destination": "/api/admin-publish" },
-    { "source": "/api/backups", "destination": "/api/admin-backup" },
-    { "source": "/api/rollback", "destination": "/api/admin-backup" },
-    { "source": "/api/preview", "destination": "/api/admin-preview" },
+    { "source": "/api/publish", "destination": "/api/admin-system" },
+    { "source": "/api/backups", "destination": "/api/admin-system" },
+    { "source": "/api/rollback", "destination": "/api/admin-system" },
+    { "source": "/api/preview", "destination": "/api/admin-system" },
     { "source": "/api/public/content", "destination": "/api/public-content" }
   ]
 }
