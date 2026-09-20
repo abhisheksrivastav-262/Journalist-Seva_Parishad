@@ -525,7 +525,9 @@ function vObjectives(){ $("#view").innerHTML=`<div class="card"><h2>🎯 सं�
 function vConsumerPg(){ $("#view").innerHTML=`<div class="card"><h2>📄 जागरूकता पेज</h2><p class="mut">उपभोक्ता जागरूकता कार्यक्रम — <a href="/consumer.html" target="_blank">consumer.html</a> पर दिखेंगे।</p></div>`+listTableHTML("कार्यक्रम जोड़ें","consumer",CON_COLS); }
 function idcHTML(m){
   const base=location.origin;
-  return `<div class="idcard"><div class="id-head"><img src="${base}/assets/logo.jpeg" alt="logo"><div><b>जर्नलिस्ट सेवा परिषद</b><br><small>पत्रकारों का राष्ट्रीय संगठन</small></div></div><div class="id-body">${m.img?`<img class="id-photo" src="${base}/${m.img}" alt="">`:""}<div><b style="font-size:1.05rem">${m.name||""}</b></div><div>ID: <b>${m.memberId||""}</b></div><div>${m.newspaper||""}</div>${m.role?`<div>पद: ${m.role}</div>`:""}<div>मो: ${m.phone||""}</div><div style="font-size:.75rem;color:#666">${m.address||""}</div></div></div>`;
+  const ph=String((m&&m.img)||"");
+  const photoSrc=ph?((ph.startsWith("http://")||ph.startsWith("https://"))?ph:base+"/"+ph.replace(/^\/+/,"")):"";
+  return `<div class="idcard"><div class="id-head"><img src="${base}/assets/logo.jpeg" alt="logo"><div><b>जर्नलिस्ट सेवा परिषद</b><br><small>पत्रकारों का राष्ट्रीय संगठन</small></div></div><div class="id-body">${photoSrc?`<img class="id-photo" src="${photoSrc}" alt="">`:""}<div><b style="font-size:1.05rem">${m.name||""}</b></div><div>ID: <b>${m.memberId||""}</b></div><div>${m.newspaper||""}</div>${m.role?`<div>पद: ${m.role}</div>`:""}<div>मो: ${m.phone||""}</div><div style="font-size:.75rem;color:#666">${m.address||""}</div></div></div>`;
 }
 function vIdCard(){
   const ms=DATA.lists.members;
