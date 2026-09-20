@@ -32,8 +32,8 @@ module.exports = async (request, response) => {
     if (pathn === "/api/inbox.csv") {
       const me = needRole(getSession(request, env.SESSION_SECRET || ""), "editor");
       if (!me) return sendJson(response, 401, { error: "login required" });
-      const c = await sbReq(env, "GET", "/rest/v1/contact_messages?select=*&order=created_at.desc", true);
-      const m = await sbReq(env, "GET", "/rest/v1/membership_applications?select=*&order=created_at.desc", true);
+      const c = await sbReq(env, "GET", "/rest/v1/contact_messages?select=*&order=created_at.desc", undefined, true);
+      const m = await sbReq(env, "GET", "/rest/v1/membership_applications?select=*&order=created_at.desc", undefined, true);
       const rows = [["id", "date", "type", "status", "data"]];
       const push = (type, arr) => (arr || []).forEach((r) => rows.push([r.id, r.created_at || "", type, r.status || "", JSON.stringify(r)]));
       if (c.ok) push("contact", c.json);
@@ -56,7 +56,7 @@ module.exports = async (request, response) => {
         return sendJson(response, 200, { ok: true });
       }
       if (request.method === "DELETE") {
-        const r = await sbReq(env, "DELETE", "/rest/v1/" + target.table + "?id=eq." + target.uuid, true);
+        const r = await sbReq(env, "DELETE", "/rest/v1/" + target.table + "?id=eq." + target.uuid, undefined, true);
         if (!r.ok) return sendJson(response, 502, { error: "delete failed" });
         return sendJson(response, 200, { ok: true });
       }
@@ -66,8 +66,8 @@ module.exports = async (request, response) => {
     if (pathn === "/api/inbox" && request.method === "GET") {
       const me = needRole(getSession(request, env.SESSION_SECRET || ""), "editor");
       if (!me) return sendJson(response, 401, { error: "login required" });
-      const c = await sbReq(env, "GET", "/rest/v1/contact_messages?select=*&order=created_at.desc", true);
-      const m = await sbReq(env, "GET", "/rest/v1/membership_applications?select=*&order=created_at.desc", true);
+      const c = await sbReq(env, "GET", "/rest/v1/contact_messages?select=*&order=created_at.desc", undefined, true);
+      const m = await sbReq(env, "GET", "/rest/v1/membership_applications?select=*&order=created_at.desc", undefined, true);
       const inbox = [];
       if (c.ok && Array.isArray(c.json)) c.json.forEach((r) => inbox.push(toPanel("contact", r)));
       if (m.ok && Array.isArray(m.json)) m.json.forEach((r) => inbox.push(toPanel("member", r)));

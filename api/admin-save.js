@@ -17,11 +17,11 @@ async function upsertSite(env, pairs) {
 }
 
 async function replaceList(env, table, rows) {
-  const ex = await sbReq(env, "GET", "/rest/v1/" + table + "?select=id", true);
+  const ex = await sbReq(env, "GET", "/rest/v1/" + table + "?select=id", undefined, true);
   if (!ex.ok) return ex;
   const ids = (Array.isArray(ex.json) ? ex.json : []).map((r) => r.id).filter(Boolean);
   if (ids.length) {
-    const del = await sbReq(env, "DELETE", "/rest/v1/" + table + "?id=in.(" + ids.join(",") + ")", true);
+    const del = await sbReq(env, "DELETE", "/rest/v1/" + table + "?id=in.(" + ids.join(",") + ")", undefined, true);
     if (!del.ok) return del;
   }
   if (rows.length) {
@@ -37,7 +37,7 @@ async function saveBank(env, b) {
     bank_name: b.bankName || "", account_holder: b.holder || "", account_number: b.accNo || "",
     ifsc: b.ifsc || "", branch: b.branch || "", upi_id: b.upiId || "",
   };
-  const ex = await sbReq(env, "GET", "/rest/v1/donation_settings?select=id,qr_image_url&limit=1", true);
+  const ex = await sbReq(env, "GET", "/rest/v1/donation_settings?select=id,qr_image_url&limit=1", undefined, true);
   if (ex.ok && Array.isArray(ex.json) && ex.json.length && ex.json[0].id) {
     row.qr_image_url = ex.json[0].qr_image_url || "";
     return sbReq(env, "PATCH", "/rest/v1/donation_settings?id=eq." + ex.json[0].id, row, true);
@@ -48,10 +48,10 @@ async function saveBank(env, b) {
 
 async function saveSocial(env, s) {
   s = s || {};
-  const ex = await sbReq(env, "GET", "/rest/v1/social_links?select=platform", true);
+  const ex = await sbReq(env, "GET", "/rest/v1/social_links?select=platform", undefined, true);
   const plats = (ex.ok && Array.isArray(ex.json) ? ex.json : []).map((r) => r.platform).filter(Boolean);
   if (plats.length) {
-    const del = await sbReq(env, "DELETE", "/rest/v1/social_links?platform=in.(" + plats.join(",") + ")", true);
+    const del = await sbReq(env, "DELETE", "/rest/v1/social_links?platform=in.(" + plats.join(",") + ")", undefined, true);
     if (!del.ok) return del;
   }
   const rows = M.socialToRows(s);
@@ -72,7 +72,7 @@ module.exports = async (request, response) => {
       if (r.ok && b.id === "mem_qr") {
         const m = String(b.value || "").match(/src="([^"]+)"/);
         const qr = m ? m[1] : String(b.value || "");
-        const ex = await sbReq(env, "GET", "/rest/v1/donation_settings?select=id&limit=1", true);
+        const ex = await sbReq(env, "GET", "/rest/v1/donation_settings?select=id&limit=1", undefined, true);
         if (ex.ok && Array.isArray(ex.json) && ex.json.length && ex.json[0].id) {
           r = await sbReq(env, "PATCH", "/rest/v1/donation_settings?id=eq." + ex.json[0].id, { qr_image_url: qr }, true);
         } else {

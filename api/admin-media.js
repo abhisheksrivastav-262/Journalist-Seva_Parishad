@@ -25,7 +25,13 @@ function keyOf(p) {
   return s;
 }
 async function signKey(env, key, expiresIn) {
-  return sbReq(env, "POST", "/storage/v1/object/sign/" + BUCKET + "/" + key.split("/").map(encodeURIComponent).join("/"), { expiresIn: expiresIn || 600 }, true);
+  // Upload-sign endpoint (for NEW objects) returns {url, token}; PUT goes to url?token=...
+  const r = await sbReq(env, "POST", "/storage/v1/object/upload/sign/" + BUCKET + "/" + key.split("/").map(encodeURIComponent).join("/"), { expiresIn: expiresIn || 600 }, true);
+  if (!r.ok || !r.json || !r.json.token) return r;
+  const base = env.SUPABASE_URL.replace(/\/$/, "");
+  // NOTE: response `url` lacks the /storage/v1 prefix — build PUT target explicitly from key+token
+  r.json.signedUrl = base + "/storage/v1/object/upload/sign/" + BUCKET + "/" + key.split("/").map(encodeURIComponent).join("/") + "?token=" + r.json.token;
+  return r;
 }
 
 module.exports = async (request, response) => {
@@ -64,7 +70,7 @@ module.exports = async (request, response) => {
       } catch (e) {}
       try {
         for (const t of ["news", "activities", "gallery", "leaders"]) {
-          const rr = await sbReq(env, "GET", "/rest/v1/" + t + "?select=id&limit=1", true);
+          const rr = await sbReq(env, "GET", "/rest/v1/" + t + "?select=id&limit=1", undefined, true);
           void rr;
         }
       } catch (e) {}
@@ -106,11 +112,11 @@ module.exports = async (request, response) => {
       await fetch(env.SUPABASE_URL + "/storage/v1/object/" + BUCKET + "/" + key.split("/").map(encodeURIComponent).join("/"), {
         method: "DELETE", headers: { apikey: env.SUPABASE_SECRET_KEY, Authorization: "Bearer " + env.SUPABASE_SECRET_KEY },
       }).catch(() => {});
-      const rows = await sbReq(env, "GET", "/rest/v1/media?select=id,file_url", true);
+      const rows = await sbReq(env, "GET", "/rest/v1/media?select=id,file_url", undefined, true);
       if (rows.ok && Array.isArray(rows.json)) {
         for (const m of rows.json) {
           if (m.file_url === b.path || String(m.file_url || "").endsWith("/" + key.split("/").pop())) {
-            await sbReq(env, "DELETE", "/rest/v1/media?id=eq." + m.id, true);
+            await sbReq(env, "DELETE", "/rest/v1/media?id=eq." + m.id, undefined, true);
           }
         }
       }

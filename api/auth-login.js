@@ -11,7 +11,7 @@ module.exports = async (request, response) => {
     if (!env.SESSION_SECRET) return sendJson(response, 500, { error: "server misconfigured" });
     const b = (await readJson(request)) || {};
     const username = String(b.user || "").trim();
-    const r = await sbReq(env, "GET", "/rest/v1/admin_users?username=eq." + encodeURIComponent(username) + "&select=username,role,salt,password_hash,must_change", true);
+    const r = await sbReq(env, "GET", "/rest/v1/admin_users?username=eq." + encodeURIComponent(username) + "&select=username,role,salt,password_hash,must_change", undefined, true);
     const u = r.ok && Array.isArray(r.json) && r.json[0] ? r.json[0] : null;
     if (!u || !checkPw(String(b.pass || ""), u.salt, u.password_hash)) {
       await new Promise((res) => setTimeout(res, 600));

@@ -10,7 +10,7 @@ module.exports = async (request, response) => {
     if (!s) return sendJson(response, 200, { user: null });
     let mustChange = false;
     try {
-      const r = await sbReq(env, "GET", "/rest/v1/admin_users?username=eq." + encodeURIComponent(s.user) + "&select=must_change", true);
+      const r = await sbReq(env, "GET", "/rest/v1/admin_users?username=eq." + encodeURIComponent(s.user) + "&select=must_change", undefined, true);
       if (r.ok && Array.isArray(r.json) && r.json[0]) mustChange = !!r.json[0].must_change;
     } catch (e) {}
     return sendJson(response, 200, { user: s.user, role: s.role, mustChange });

@@ -17,12 +17,12 @@ module.exports = async (request, response) => {
     const pathn = url.pathname;
     const me = needRole(getSession(request, env.SESSION_SECRET || ""), "admin");
     const findUser = async (username) => {
-      const r = await sbReq(env, "GET", "/rest/v1/admin_users?username=eq." + encodeURIComponent(username) + "&select=username,role,salt,password_hash,must_change", true);
+      const r = await sbReq(env, "GET", "/rest/v1/admin_users?username=eq." + encodeURIComponent(username) + "&select=username,role,salt,password_hash,must_change", undefined, true);
       return r.ok && Array.isArray(r.json) && r.json[0] ? r.json[0] : null;
     };
     if (pathn === "/api/users" && request.method === "GET") {
       if (!me) return sendJson(response, 401, { error: "login required" });
-      const r = await sbReq(env, "GET", "/rest/v1/admin_users?select=username,role&order=username", true);
+      const r = await sbReq(env, "GET", "/rest/v1/admin_users?select=username,role&order=username", undefined, true);
       if (!r.ok) return sendJson(response, 502, { error: "users read failed" });
       return sendJson(response, 200, { users: (r.json || []).map((u) => ({ user: u.username, role: u.role })) });
     }
@@ -49,7 +49,7 @@ module.exports = async (request, response) => {
       if (!me) return sendJson(response, 401, { error: "login required" });
       const b = (await readJson(request)) || {};
       if (b.user === me.user) return sendJson(response, 400, { error: "khud ko delete nahi" });
-      const r = await sbReq(env, "DELETE", "/rest/v1/admin_users?username=eq." + encodeURIComponent(b.user || ""), true);
+      const r = await sbReq(env, "DELETE", "/rest/v1/admin_users?username=eq." + encodeURIComponent(b.user || ""), undefined, true);
       if (!r.ok) return sendJson(response, 502, { error: "delete failed" });
       return sendJson(response, 200, { ok: true });
     }
