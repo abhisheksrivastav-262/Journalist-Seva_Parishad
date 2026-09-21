@@ -70,11 +70,21 @@ img.th{width:64px;height:64px;object-fit:cover;border-radius:10px;border:1px sol
 .media-grid img,.media-grid video{width:100%;height:120px;object-fit:cover;display:block;background:#000}
 .media-grid figcaption{font-size:.72rem;padding:8px;word-break:break-all}
 .help ol li{margin-bottom:10px}
-.idcard{width:340px;max-width:100%;border:2px solid var(--navy);border-radius:16px;overflow:hidden;background:#fff;color:var(--ink)}
-.idcard .id-head{background:linear-gradient(135deg,var(--navy),var(--royal));color:#fff;padding:14px;display:flex;gap:10px;align-items:center}
-.idcard .id-head img{width:52px;height:52px;border-radius:50%;background:#fff;object-fit:cover}
-.idcard .id-body{padding:16px;display:grid;gap:6px;font-size:.9rem}
-.idcard .id-photo{width:90px;height:110px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
+.idcard{width:340px;max-width:100%;border-radius:16px;overflow:hidden;background:#fff;color:var(--ink);border:1px solid #d4af37;box-shadow:0 10px 30px rgba(10,26,60,.25);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.idcard .id-top{background:linear-gradient(135deg,#0a1a3c,#1e3a8a);color:#fff;padding:14px;display:flex;gap:10px;align-items:center;border-bottom:3px solid #d4af37}
+.idcard .id-top img{width:54px;height:54px;border-radius:50%;background:#fff;object-fit:cover;border:2px solid #d4af37;flex:none}
+.idcard .id-top b{font-size:1.02rem;color:#f5d76e;display:block;line-height:1.35}
+.idcard .id-top small{display:block;font-size:.68rem;opacity:.92;line-height:1.45}
+.idcard .id-band{background:linear-gradient(90deg,#b8860b,#f5d76e,#b8860b);color:#0a1a3c;text-align:center;font-weight:800;font-size:.78rem;letter-spacing:2px;padding:5px}
+.idcard .id-mid{padding:14px 16px 4px;text-align:center}
+.idcard .id-photo{width:110px;height:135px;object-fit:cover;border-radius:10px;border:3px solid #d4af37;box-shadow:0 4px 12px rgba(0,0,0,.2);background:#f3f4f6}
+.idcard .id-name{font-size:1.2rem;font-weight:800;color:#0a1a3c;margin:8px 0 0;line-height:1.3}
+.idcard .id-role{font-size:.82rem;color:#1e3a8a;font-weight:700;margin-top:2px}
+.idcard .id-rows{margin:10px 16px 12px;border:1px solid #e5d48a;border-radius:10px;overflow:hidden;font-size:.82rem}
+.idcard .id-rows div{display:flex;justify-content:space-between;gap:8px;padding:6px 10px;background:#fff}
+.idcard .id-rows div:nth-child(odd){background:#fdf6e3}
+.idcard .id-rows b{color:#0a1a3c}
+.idcard .id-foot{background:#0a1a3c;color:#f5d76e;font-size:.75rem;font-weight:700;display:flex;justify-content:space-between;gap:8px;padding:8px 14px}
 @media(max-width:860px){
   .shell{grid-template-columns:1fr}
   .hamburger{display:block}
@@ -523,17 +533,21 @@ function vNotices(){ $("#view").innerHTML=`<div class="card"><h2>📣 घोष�
 function vDonors(){ $("#view").innerHTML=`<div class="card"><h2>❤️ दानदाता</h2><p class="mut">दान देने वालों के नाम — Membership page की दानदाता दीवार पर दिखेंगे।</p></div>`+listTableHTML("दानदाता जोड़ें","donors",DON_COLS); }
 function vObjectives(){ $("#view").innerHTML=`<div class="card"><h2>🎯 संस्था के उद्देश्य</h2><p class="mut">Home + About page की उद्देश्य-सूची। Order: ▲▼।</p></div>`+listTableHTML("उद्देश्य जोड़ें","objectives",OBJ_COLS); }
 function vConsumerPg(){ $("#view").innerHTML=`<div class="card"><h2>📄 जागरूकता पेज</h2><p class="mut">उपभोक्ता जागरूकता कार्यक्रम — <a href="/consumer.html" target="_blank">consumer.html</a> पर दिखेंगे।</p></div>`+listTableHTML("कार्यक्रम जोड़ें","consumer",CON_COLS); }
+function fmtD(d){ const m=String(d||"").match(/^(\d{4})-(\d{2})-(\d{2})/); return m?m[3]+"-"+m[2]+"-"+m[1]:String(d||""); }
 function idcHTML(m){
   const base=location.origin;
   const ph=String((m&&m.img)||"");
   const photoSrc=ph?((ph.startsWith("http://")||ph.startsWith("https://"))?ph:base+"/"+ph.replace(/^\/+/,"")):"";
-  return `<div class="idcard"><div class="id-head"><img src="${base}/assets/logo.jpeg" alt="logo"><div><b>जर्नलिस्ट सेवा परिषद</b><br><small>पत्रकारों का राष्ट्रीय संगठन</small></div></div><div class="id-body">${photoSrc?`<img class="id-photo" src="${photoSrc}" alt="">`:""}<div><b style="font-size:1.05rem">${m.name||""}</b></div><div>ID: <b>${m.memberId||""}</b></div><div>${m.newspaper||""}</div>${m.role?`<div>पद: ${m.role}</div>`:""}<div>मो: ${m.phone||""}</div><div style="font-size:.75rem;color:#666">${m.address||""}</div></div></div>`;
+  const rows=[["🪪 ID No",m.memberId||"-"],["🎂 जन्म तिथि",fmtD(m.dob)||"-"],["📱 मोबाइल",m.phone||"-"],["🏢 संस्था",m.newspaper||"-"]];
+  return `<div class="idcard"><div class="id-top"><img src="${base}/assets/logo.jpeg" alt="logo"><div><b>जर्नलिस्ट सेवा परिषद</b><small>पत्रकारों का राष्ट्रीय संगठन</small><small>100A शताब्दी रोड, पनकी, कानपुर, उ.प्र. 208020</small></div></div><div class="id-band">पहचान पत्र • IDENTITY CARD</div><div class="id-mid">${photoSrc?`<img class="id-photo" src="${photoSrc}" alt="">`:`<div class="id-photo" style="display:inline-flex;align-items:center;justify-content:center;color:#999;font-size:.7rem">Photo</div>`}<div class="id-name">${m.name||""}</div>${m.role?`<div class="id-role">${m.role}</div>`:""}${m.address?`<div style="font-size:.72rem;color:#666">${m.address}</div>`:""}</div><div class="id-rows">${rows.map(r=>`<div><span>${r[0]}</span><b>${r[1]}</b></div>`).join("")}</div><div class="id-foot"><span>📅 वैधता: ${m.valid||"-"}</span><span>jsp.bharatvarsh@gmail.com</span></div></div>`;
 }
 function vIdCard(){
   const ms=DATA.lists.members;
+  const vy=new Date(); vy.setFullYear(vy.getFullYear()+1);
+  const defValid=String(vy.getDate()).padStart(2,"0")+"-"+String(vy.getMonth()+1).padStart(2,"0")+"-"+vy.getFullYear();
   $("#view").innerHTML=`<div class="card"><h2>🪪 ID कार्ड बनाएं</h2>
   <label class="f">तरीका चुनें</label><select id="idc-mode" onchange="idcMode()"><option value="pick">सूची से सदस्य चुनें</option><option value="form">नया फॉर्म भरें</option></select>
-  <div id="idc-pick"><label class="f">सदस्य चुनें</label><select id="idc-sel">${ms.map((m,i)=>`<option value="${i}">${(m.name||"नामहीन")+" ("+(m.memberId||"no-id")+")"}</option>`).join("")||"<option value=''>कोई सदस्य नहीं — पहले जोड़ें</option>"}</select></div>
+  <div id="idc-pick"><label class="f">सदस्य चुनें</label><select id="idc-sel" onchange="idcFill()">${ms.map((m,i)=>`<option value="${i}">${(m.name||"नामहीन")+" ("+(m.memberId||"no-id")+")"}</option>`).join("")||"<option value=''>कोई सदस्य नहीं — पहले जोड़ें</option>"}</select></div>
   <div id="idc-form" style="display:none">
     <div style="border:2px dashed var(--royal);border-radius:12px;padding:14px;margin:10px 0;background:#f4f7ff"><b>📷 Photo</b><div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center"><input type="file" id="idc-file" accept="image/*" style="flex:1;min-width:160px"><button class="btn btn-b btn-sm" onclick="idcUpload()">⬆ Upload</button></div><div id="idc-prev" style="margin-top:8px"></div></div>
     <input type="hidden" id="idc-img" value="">
@@ -545,6 +559,7 @@ function vIdCard(){
     <label class="f">पता</label><input type="text" id="idc-addr" placeholder="शहर, जिला">
     <div class="rowbtns" style="margin-top:10px"><button class="btn btn-g btn-sm" onclick="saveFormMember()">＋ सूची में भी save करें</button></div>
   </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px"><div><label class="f">🎂 जन्म तिथि</label><input type="date" id="idc-dob"></div><div><label class="f">📅 वैधता (Valid Upto)</label><input type="text" id="idc-valid" value="${defValid}"></div></div>
   <div class="rowbtns" style="margin-top:12px"><button class="btn btn-b btn-sm" onclick="idcPreview()">👁 Preview</button><button class="btn btn-s btn-sm" onclick="idcPrint()">🖨 Print</button></div>
   <div id="idc-out" style="margin-top:16px"></div></div>`;
 }
@@ -555,18 +570,24 @@ window.idcUpload=async function(){
     $("#idc-img").value=d.path; $("#idc-prev").innerHTML=`<img src="${imgSrc(d.path)}" style="max-width:120px;border-radius:10px">`; toast("Uploaded ✓");
   }catch(e){ toast(e.message); }
 };
+window.idcFill=function(){ const i=+((($("#idc-sel"))||{}).value||""); const mem=(DATA.lists.members||[])[i]||{}; const d=$("#idc-dob"); if(d&&mem.dob) d.value=String(mem.dob).slice(0,10); };
 window.idcData=function(){
   const m=(($("#idc-mode")||{}).value)||"pick";
+  const v=id=>((($("#"+id))||{}).value||"").trim();
+  let o;
   if(m==="form"){
-    const v=id=>((($("#"+id))||{}).value||"").trim();
-    const o={img:v("idc-img"),name:v("idc-name"),memberId:v("idc-id"),phone:v("idc-phone"),newspaper:v("idc-paper"),role:v("idc-role"),address:v("idc-addr")};
+    o={img:v("idc-img"),name:v("idc-name"),memberId:v("idc-id"),phone:v("idc-phone"),newspaper:v("idc-paper"),role:v("idc-role"),address:v("idc-addr")};
     if(!o.name){ toast("नाम भरें"); return null; }
     if(!o.memberId){ toast("ID संख्या भरें"); return null; }
-    return o;
+  } else {
+    const i=+((($("#idc-sel"))||{}).value||""); const mem=DATA.lists.members[i];
+    if(!mem){ toast("सदस्य चुनें"); return null; }
+    o=Object.assign({},mem);
   }
-  const i=+((($("#idc-sel"))||{}).value||""); const mem=DATA.lists.members[i];
-  if(!mem){ toast("सदस्य चुनें"); return null; }
-  return mem;
+  const dob=v("idc-dob"), valid=v("idc-valid");
+  if(m==="form"||dob) o.dob=dob;
+  if(m==="form"||valid) o.valid=valid;
+  return o;
 };
 window.saveFormMember=async function(){
   const o=idcData(); if(!o) return;
@@ -579,7 +600,7 @@ window.idcPreview=function(){ const m=idcData(); if(!m) return; $("#idc-out").in
 window.idcPrint=function(){
   const m=idcData(); if(!m) return;
   const w=window.open("","_blank");
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ID Card - ${m.name||""}</title><style>body{font-family:sans-serif;display:flex;justify-content:center;padding:30px}.idcard{width:340px;border:2px solid #0a1a3c;border-radius:16px;overflow:hidden}.id-head{background:#0a1a3c;color:#fff;padding:14px;display:flex;gap:10px;align-items:center}.id-head img{width:52px;height:52px;border-radius:50%;background:#fff;object-fit:cover}.id-body{padding:16px;display:grid;gap:6px;font-size:.9rem}.id-photo{width:90px;height:110px;object-fit:cover;border-radius:10px;border:1px solid #ccc}</style></head><body>${idcHTML(m)}<script>onload=function(){setTimeout(function(){print()},400)}<\/script></body></html>`);
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ID Card - ${m.name||""}</title><style>body{font-family:sans-serif;display:flex;justify-content:center;padding:30px;margin:0}.idcard{width:340px;border-radius:16px;overflow:hidden;background:#fff;color:#111827;border:1px solid #d4af37;-webkit-print-color-adjust:exact;print-color-adjust:exact}.id-top{background:#0a1a3c;color:#fff;padding:14px;display:flex;gap:10px;align-items:center;border-bottom:3px solid #d4af37}.id-top img{width:54px;height:54px;border-radius:50%;background:#fff;object-fit:cover;border:2px solid #d4af37}.id-top b{font-size:1.02rem;color:#f5d76e;display:block}.id-top small{display:block;font-size:.68rem}.id-band{background:#d4af37;color:#0a1a3c;text-align:center;font-weight:800;font-size:.78rem;letter-spacing:2px;padding:5px}.id-mid{padding:14px 16px 4px;text-align:center}.id-photo{width:110px;height:135px;object-fit:cover;border-radius:10px;border:3px solid #d4af37;background:#f3f4f6}.id-name{font-size:1.2rem;font-weight:800;color:#0a1a3c;margin:8px 0 0}.id-role{font-size:.82rem;color:#1e3a8a;font-weight:700;margin-top:2px}.id-rows{margin:10px 16px 12px;border:1px solid #e5d48a;border-radius:10px;overflow:hidden;font-size:.82rem}.id-rows div{display:flex;justify-content:space-between;gap:8px;padding:6px 10px}.id-foot{background:#0a1a3c;color:#f5d76e;font-size:.75rem;font-weight:700;display:flex;justify-content:space-between;gap:8px;padding:8px 14px}</style></head><body>${idcHTML(m)}<script>onload=function(){setTimeout(function(){print()},400)}<\/script></body></html>`);
   w.document.close();
 };
 function vSocial(){
