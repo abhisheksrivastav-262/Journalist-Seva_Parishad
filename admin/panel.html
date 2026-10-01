@@ -70,21 +70,28 @@ img.th{width:64px;height:64px;object-fit:cover;border-radius:10px;border:1px sol
 .media-grid img,.media-grid video{width:100%;height:120px;object-fit:cover;display:block;background:#000}
 .media-grid figcaption{font-size:.72rem;padding:8px;word-break:break-all}
 .help ol li{margin-bottom:10px}
-.idcard{width:340px;max-width:100%;border-radius:16px;overflow:hidden;background:#fff;color:var(--ink);border:1px solid #d4af37;box-shadow:0 10px 30px rgba(10,26,60,.25);-webkit-print-color-adjust:exact;print-color-adjust:exact}
-.idcard .id-top{background:linear-gradient(135deg,#0a1a3c,#1e3a8a);color:#fff;padding:14px;display:flex;gap:10px;align-items:center;border-bottom:3px solid #d4af37}
-.idcard .id-top img{width:54px;height:54px;border-radius:50%;background:#fff;object-fit:cover;border:2px solid #d4af37;flex:none}
-.idcard .id-top b{font-size:1.02rem;color:#f5d76e;display:block;line-height:1.35}
-.idcard .id-top small{display:block;font-size:.68rem;opacity:.92;line-height:1.45}
-.idcard .id-band{background:linear-gradient(90deg,#b8860b,#f5d76e,#b8860b);color:#0a1a3c;text-align:center;font-weight:800;font-size:.78rem;letter-spacing:2px;padding:5px}
-.idcard .id-mid{padding:14px 16px 4px;text-align:center}
-.idcard .id-photo{width:110px;height:135px;object-fit:cover;border-radius:10px;border:3px solid #d4af37;box-shadow:0 4px 12px rgba(0,0,0,.2);background:#f3f4f6}
-.idcard .id-name{font-size:1.2rem;font-weight:800;color:#0a1a3c;margin:8px 0 0;line-height:1.3}
-.idcard .id-role{font-size:.82rem;color:#1e3a8a;font-weight:700;margin-top:2px}
-.idcard .id-rows{margin:10px 16px 12px;border:1px solid #e5d48a;border-radius:10px;overflow:hidden;font-size:.82rem}
-.idcard .id-rows div{display:flex;justify-content:space-between;gap:8px;padding:6px 10px;background:#fff}
-.idcard .id-rows div:nth-child(odd){background:#fdf6e3}
-.idcard .id-rows b{color:#0a1a3c}
-.idcard .id-foot{background:#0a1a3c;color:#f5d76e;font-size:.75rem;font-weight:700;display:flex;justify-content:space-between;gap:8px;padding:8px 14px}
+.idcard{width:340px;max-width:100%;background:#fff;color:#111;border:1px solid #222;border-radius:6px;overflow:hidden;box-shadow:0 10px 30px rgba(10,26,60,.25);-webkit-print-color-adjust:exact;print-color-adjust:exact;font-family:"Noto Sans Devanagari",system-ui,sans-serif}
+.idcard .press-top{background:#c80000;text-align:center;padding:10px 8px 0;position:relative}
+.idcard .press-top b{display:block;color:#fff;font-family:Arial Black,Arial,sans-serif;font-weight:900;font-size:52px;letter-spacing:6px;line-height:1;text-shadow:2px 2px 0 rgba(0,0,0,.45)}
+.idcard .press-top span{display:block;color:#fff;font-weight:800;font-size:17px;margin-top:2px}
+.idcard .press-wave{display:block;width:100%;height:20px;margin-top:6px}
+.idcard .press-mid{display:flex;gap:10px;padding:12px 12px 6px;background:#fff}
+.idcard .press-photo{flex:0 0 128px;text-align:center}
+.idcard .press-photo .ph{width:124px;height:152px;border:1.5px solid #111;border-radius:12px;object-fit:cover;background:#e8e8e8;display:flex;align-items:center;justify-content:center;color:#777;font-size:.9rem;overflow:hidden}
+.idcard .press-photo img.ph{padding:0}
+.idcard .press-idno{font-size:.82rem;font-weight:700;margin-top:6px;color:#111}
+.idcard .press-right{flex:1;text-align:center;min-width:0}
+.idcard .press-right img.logo{width:64px;height:64px;object-fit:contain;margin:0 auto;display:block}
+.idcard .press-org{color:#c80000;font-weight:800;font-size:1.28rem;line-height:1.35;margin:4px 0 0}
+.idcard .press-sub{font-size:.74rem;color:#111;margin-top:2px}
+.idcard .press-rule{height:3px;background:#c80000;margin:8px 0;border:0}
+.idcard .press-valid{color:#c80000;font-weight:800;font-size:.95rem}
+.idcard .press-rows{padding:10px 14px 12px;font-size:.92rem}
+.idcard .press-rows .pr{display:flex;gap:10px;padding:4px 0;line-height:1.5}
+.idcard .press-rows .pr span{flex:0 0 118px;color:#111}
+.idcard .press-rows .pr b{flex:1;color:#111;font-weight:700;word-break:break-word}
+.idcard .press-name{font-weight:800}
+.idcard .press-foot{background:#c80000;color:#fff;text-align:center;font-size:.78rem;font-weight:600;padding:8px 10px;line-height:1.6}
 @media(max-width:860px){
   .shell{grid-template-columns:1fr}
   .hamburger{display:block}
@@ -518,48 +525,63 @@ window.delCat=async function(key,i){
 
 /* ---------- NEW MANAGERS ---------- */
 Object.assign(FORMS,{members:formMember,notices:formNotice,donors:formDonor,objectives:formObjective,consumer:formConsumer});
-const MEM_COLS=[["img","Photo",imgCell],["name","नाम"],["memberId","ID"],["phone","फोन"],["newspaper","अखबार"]];
+const MEM_COLS=[["img","Photo",imgCell],["name","नाम"],["memberId","ID"],["phone","मोबाइल"],["district","जिला"]];
 const NOT_COLS=[["title","Title"],["kind","प्रकार"],["date","तारीख"]];
 const DON_COLS=[["name","नाम"],["amount","राशि ₹"],["date","तारीख"]];
 const OBJ_COLS=[["text","उद्देश्य"]];
 const CON_COLS=[["title","Title"],["date","तारीख"]];
-function formMember(it){ return `${fld2("img",it.img||"","📷 Photo (ID कार्ड के लिए)")}${fld2("name",it.name||"","पूरा नाम *")}${fld2("phone",it.phone||"","मोबाइल नंबर *")}${fld2("memberId",it.memberId||"","ID संख्या *")}${fld2("address",it.address||"","पता")}${fld2("newspaper",it.newspaper||"","अखबार का नाम *")}<label class="f">Live? <input type="checkbox" data-k="active" ${it.active!==false?"checked":""}></label>`; }
+function formMember(it){ return `${fld2("img",it.img||"","📷 Photo (ID कार्ड के लिए)")}${fld2("name",it.name||"","पूरा नाम *")}${fld2("memberId",it.memberId||"","ID संख्या * (जैसे — 234)")}${fld2("district",it.district||"","जिला * (जैसे — कानपुर)")}${fld2("role",it.role||"","पद / भूमिका (जैसे — सदस्य)")}${fld2("newspaper",it.newspaper||"","मीडिया संस्थान *")}${fld2("aadhaar",it.aadhaar||"","आधार नंबर (12 अंक)")}${fld2("phone",it.phone||"","मोबाइल नंबर *")}${fld2("valid",it.valid||"वर्ष 2026-27","वैधता अवधि (जैसे — वर्ष 2026-27)")}${fld2("address",it.address||"","पता (optional)")}<label class="f">Live? <input type="checkbox" data-k="active" ${it.active!==false?"checked":""}></label>`; }
 function formNotice(it){ return `<label class="f">प्रकार *</label><select data-k="kind"><option value="event" ${(!it.kind||it.kind==="event")?"selected":""}>📅 आगामी कार्यक्रम</option><option value="achieve" ${it.kind==="achieve"?"selected":""}>🏆 उपलब्धि</option><option value="convention" ${it.kind==="convention"?"selected":""}>🎪 अधिवेशन</option></select>${fld2("title",it.title||"","Title *")}${fld2("date",it.date||"","तारीख")}${fld2("place",it.place||"","स्थान")}<label class="f">विवरण</label><textarea data-k="desc">${it.desc||""}</textarea><label class="f">Live? <input type="checkbox" data-k="active" ${it.active!==false?"checked":""}></label>`; }
 function formDonor(it){ return `${fld2("name",it.name||"","दानदाता का नाम *")}${fld2("amount",it.amount||"","राशि ₹")}${fld2("date",it.date||"","तारीख")}${fld2("note",it.note||"","नोट (optional)")}<label class="f">Live? <input type="checkbox" data-k="active" ${it.active!==false?"checked":""}></label>`; }
 function formObjective(it){ return `<label class="f">उद्देश्य *</label><textarea data-k="text" placeholder="संस्था का उद्देश्य लिखें…">${it.text||""}</textarea><label class="f">Live? <input type="checkbox" data-k="active" ${it.active!==false?"checked":""}></label>`; }
 function formConsumer(it){ return `${fld2("title",it.title||"","Title *")}${fld2("date",it.date||"","तारीख")}<label class="f">विवरण</label><textarea data-k="desc" placeholder="कार्यक्रम का विवरण…">${it.desc||""}</textarea><label class="f">Live? <input type="checkbox" data-k="active" ${it.active!==false?"checked":""}></label>`; }
-function vMembers(){ $("#view").innerHTML=`<div class="card"><h2>🧑‍💼 सदस्य प्रबंधन</h2><p class="mut">नाम, फोन, ID संख्या, पता, अखबार — जोड़ें/हटाएं। फोन नंबर सिर्फ admin में रहेगा (website पर public नहीं होगा)। ID कार्ड नीचे 👇</p></div>`+listTableHTML("सदस्य सूची","members",MEM_COLS); }
+function vMembers(){ $("#view").innerHTML=`<div class="card"><h2>🧑‍💼 सदस्य प्रबंधन</h2><p class="mut">फोटो, नाम, ID संख्या, जिला, मीडिया संस्थान, आधार, मोबाइल, वैधता — जोड़ें/हटाएं। यही सूची website पर <b>सदस्य सूची</b> page पर दिखेगी। ID कार्ड 🪪 menu में बनाएं 👇</p></div>`+listTableHTML("सदस्य सूची","members",MEM_COLS); }
 function vNotices(){ $("#view").innerHTML=`<div class="card"><h2>📣 घोषणाएं</h2><p class="mut">आगामी कार्यक्रम / उपलब्धि / अधिवेशन — Activities page पर दिखेंगी।</p></div>`+listTableHTML("घोषणा जोड़ें","notices",NOT_COLS); }
 function vDonors(){ $("#view").innerHTML=`<div class="card"><h2>❤️ दानदाता</h2><p class="mut">दान देने वालों के नाम — Membership page की दानदाता दीवार पर दिखेंगे।</p></div>`+listTableHTML("दानदाता जोड़ें","donors",DON_COLS); }
 function vObjectives(){ $("#view").innerHTML=`<div class="card"><h2>🎯 संस्था के उद्देश्य</h2><p class="mut">Home + About page की उद्देश्य-सूची। Order: ▲▼।</p></div>`+listTableHTML("उद्देश्य जोड़ें","objectives",OBJ_COLS); }
 function vConsumerPg(){ $("#view").innerHTML=`<div class="card"><h2>📄 जागरूकता पेज</h2><p class="mut">उपभोक्ता जागरूकता कार्यक्रम — <a href="/consumer.html" target="_blank">consumer.html</a> पर दिखेंगे।</p></div>`+listTableHTML("कार्यक्रम जोड़ें","consumer",CON_COLS); }
-function fmtD(d){ const m=String(d||"").match(/^(\d{4})-(\d{2})-(\d{2})/); return m?m[3]+"-"+m[2]+"-"+m[1]:String(d||""); }
+function fmtAadhaar(a){ const d=String(a||"").replace(/\D/g,"").slice(0,12); return d?d.replace(/(\d{4})(\d{4})(\d{4})/,"$1 $2 $3"): "-"; }
+function escH(s){ return String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 function idcHTML(m){
+  m=m||{};
   const base=location.origin;
   const ph=String((m&&m.img)||"");
   const photoSrc=ph?((ph.startsWith("http://")||ph.startsWith("https://"))?ph:base+"/"+ph.replace(/^\/+/,"")):"";
-  const rows=[["🪪 ID No",m.memberId||"-"],["🎂 जन्म तिथि",fmtD(m.dob)||"-"],["📱 मोबाइल",m.phone||"-"],["🏢 संस्था",m.newspaper||"-"]];
-  return `<div class="idcard"><div class="id-top"><img src="${base}/assets/logo.jpeg" alt="logo"><div><b>जर्नलिस्ट सेवा परिषद</b><small>पत्रकारों का राष्ट्रीय संगठन</small><small>100A शताब्दी रोड, पनकी, कानपुर, उ.प्र. 208020</small></div></div><div class="id-band">पहचान पत्र • IDENTITY CARD</div><div class="id-mid">${photoSrc?`<img class="id-photo" src="${photoSrc}" alt="">`:`<div class="id-photo" style="display:inline-flex;align-items:center;justify-content:center;color:#999;font-size:.7rem">Photo</div>`}<div class="id-name">${m.name||""}</div>${m.role?`<div class="id-role">${m.role}</div>`:""}${m.address?`<div style="font-size:.72rem;color:#666">${m.address}</div>`:""}</div><div class="id-rows">${rows.map(r=>`<div><span>${r[0]}</span><b>${r[1]}</b></div>`).join("")}</div><div class="id-foot"><span>📅 वैधता: ${m.valid||"-"}</span><span>jsp.bharatvarsh@gmail.com</span></div></div>`;
+  const name=escH(m.name||"-");
+  const memberId=escH(m.memberId||m.membership_id||"-");
+  const district=escH(m.district||"");
+  const role=escH(m.role||m.designation||"");
+  let distPos="-";
+  if(role&&district) distPos=role+", "+district;
+  else if(role) distPos=role;
+  else if(district) distPos="सदस्य, "+district;
+  const org=escH(m.newspaper||m.organization||"-");
+  const aadhaar=escH(fmtAadhaar(m.aadhaar));
+  const mobile=escH(m.phone||m.mobile||"-");
+  const validRaw=String(m.valid||"वर्ष 2026-27").trim();
+  const valid=escH(/^वर्ष|वैधता/.test(validRaw)?validRaw.replace(/^वैधता\s*:?\s*/,""):validRaw);
+  const photoInner=photoSrc?`<img class="ph" src="${photoSrc}" alt="">`:`<div class="ph">Photo</div>`;
+  return `<div class="idcard"><div class="press-top"><b>PRESS</b><span>jspindia.online</span><svg class="press-wave" viewBox="0 0 340 20" preserveAspectRatio="none"><path d="M0,6 C60,16 120,2 170,8 C220,14 280,4 340,10 L340,20 L0,20 Z" fill="#0a6ed1"/><path d="M0,10 C70,20 140,6 200,12 C250,16 300,8 340,14" stroke="#7ec3ff" stroke-width="2.5" fill="none"/></svg></div><div class="press-mid"><div class="press-photo">${photoInner}<div class="press-idno">ID No: ${memberId}</div></div><div class="press-right"><img class="logo" src="${base}/assets/logo.jpeg" alt="JSP"><div class="press-org">जर्नलिस्ट सेवा परिषद</div><div class="press-sub">पत्रकारों का राष्ट्रीय संगठन</div><hr class="press-rule"><div class="press-valid">वैधता: ${valid}</div><hr class="press-rule"></div></div><div class="press-rows"><div class="pr"><span>नाम</span><b class="press-name">${name}</b></div><div class="pr"><span>जिला / पद</span><b>${distPos}</b></div><div class="pr"><span>मीडिया संस्थान</span><b>${org}</b></div><div class="pr"><span>आधार</span><b>${aadhaar}</b></div><div class="pr"><span>मोबाइल</span><b>${mobile}</b></div></div><div class="press-foot">100A शताब्दी रोड, पनकी, कानपुर, उ.प्र. 208020<br>jsp.bharatvarsh@gmail.com</div></div>`;
 }
 function vIdCard(){
   const ms=DATA.lists.members;
-  const vy=new Date(); vy.setFullYear(vy.getFullYear()+1);
-  const defValid=String(vy.getDate()).padStart(2,"0")+"-"+String(vy.getMonth()+1).padStart(2,"0")+"-"+vy.getFullYear();
-  $("#view").innerHTML=`<div class="card"><h2>🪪 ID कार्ड बनाएं</h2>
+  const defValid="वर्ष 2026-27";
+  $("#view").innerHTML=`<div class="card"><h2>🪪 ID कार्ड बनाएं (PRESS • jspindia.online)</h2>
   <label class="f">तरीका चुनें</label><select id="idc-mode" onchange="idcMode()"><option value="pick">सूची से सदस्य चुनें</option><option value="form">नया फॉर्म भरें</option></select>
   <div id="idc-pick"><label class="f">सदस्य चुनें</label><select id="idc-sel" onchange="idcFill()">${ms.map((m,i)=>`<option value="${i}">${(m.name||"नामहीन")+" ("+(m.memberId||"no-id")+")"}</option>`).join("")||"<option value=''>कोई सदस्य नहीं — पहले जोड़ें</option>"}</select></div>
   <div id="idc-form" style="display:none">
     <div style="border:2px dashed var(--royal);border-radius:12px;padding:14px;margin:10px 0;background:#f4f7ff"><b>📷 Photo</b><div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center"><input type="file" id="idc-file" accept="image/*" style="flex:1;min-width:160px"><button class="btn btn-b btn-sm" onclick="idcUpload()">⬆ Upload</button></div><div id="idc-prev" style="margin-top:8px"></div></div>
     <input type="hidden" id="idc-img" value="">
     <label class="f">पूरा नाम *</label><input type="text" id="idc-name" placeholder="जैसे — राम कुमार">
-    <label class="f">ID संख्या *</label><input type="text" id="idc-id" placeholder="जैसे — JSP-001">
+    <label class="f">ID संख्या *</label><input type="text" id="idc-id" placeholder="जैसे — 234">
+    <label class="f">जिला *</label><input type="text" id="idc-district" placeholder="जैसे — कानपुर">
+    <label class="f">पद / भूमिका (सदस्य आदि)</label><input type="text" id="idc-role" placeholder="जैसे — सदस्य">
+    <label class="f">मीडिया संस्थान *</label><input type="text" id="idc-paper" placeholder="जैसे — दैनिक भास्कर">
+    <label class="f">आधार नंबर (12 अंक)</label><input type="text" id="idc-aadhaar" inputmode="numeric" maxlength="14" placeholder="जैसे — 1234 5678 9012">
     <label class="f">मोबाइल नंबर</label><input type="text" id="idc-phone" placeholder="10 अंक">
-    <label class="f">अखबार / संस्था</label><input type="text" id="idc-paper" placeholder="जैसे — दैनिक भास्कर">
-    <label class="f">पद / भूमिका</label><input type="text" id="idc-role" placeholder="जैसे — संवाददाता">
-    <label class="f">पता</label><input type="text" id="idc-addr" placeholder="शहर, जिला">
     <div class="rowbtns" style="margin-top:10px"><button class="btn btn-g btn-sm" onclick="saveFormMember()">＋ सूची में भी save करें</button></div>
   </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px"><div><label class="f">🎂 जन्म तिथि</label><input type="date" id="idc-dob"></div><div><label class="f">📅 वैधता (Valid Upto)</label><input type="text" id="idc-valid" value="${defValid}"></div></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px"><div><label class="f">🪪 आधार नंबर</label><input type="text" id="idc-aadhaar2" inputmode="numeric" placeholder="12 अंक"></div><div><label class="f">📅 वैधता अवधि</label><input type="text" id="idc-valid" value="${defValid}"></div></div>
   <div class="rowbtns" style="margin-top:12px"><button class="btn btn-b btn-sm" onclick="idcPreview()">👁 Preview</button><button class="btn btn-s btn-sm" onclick="idcPrint()">🖨 Print</button></div>
   <div id="idc-out" style="margin-top:16px"></div></div>`;
 }
@@ -570,13 +592,13 @@ window.idcUpload=async function(){
     $("#idc-img").value=d.path; $("#idc-prev").innerHTML=`<img src="${imgSrc(d.path)}" style="max-width:120px;border-radius:10px">`; toast("Uploaded ✓");
   }catch(e){ toast(e.message); }
 };
-window.idcFill=function(){ const i=+((($("#idc-sel"))||{}).value||""); const mem=(DATA.lists.members||[])[i]||{}; const d=$("#idc-dob"); if(d&&mem.dob) d.value=String(mem.dob).slice(0,10); };
+window.idcFill=function(){ const i=+((($("#idc-sel"))||{}).value||""); const mem=(DATA.lists.members||[])[i]||{}; const a=$("#idc-aadhaar2"); if(a&&mem.aadhaar) a.value=String(mem.aadhaar); const vv=$("#idc-valid"); if(vv&&mem.valid) vv.value=String(mem.valid); };
 window.idcData=function(){
   const m=(($("#idc-mode")||{}).value)||"pick";
   const v=id=>((($("#"+id))||{}).value||"").trim();
   let o;
   if(m==="form"){
-    o={img:v("idc-img"),name:v("idc-name"),memberId:v("idc-id"),phone:v("idc-phone"),newspaper:v("idc-paper"),role:v("idc-role"),address:v("idc-addr")};
+    o={img:v("idc-img"),name:v("idc-name"),memberId:v("idc-id"),district:v("idc-district"),role:v("idc-role"),newspaper:v("idc-paper"),aadhaar:v("idc-aadhaar").replace(/\D/g,""),phone:v("idc-phone")};
     if(!o.name){ toast("नाम भरें"); return null; }
     if(!o.memberId){ toast("ID संख्या भरें"); return null; }
   } else {
@@ -584,9 +606,9 @@ window.idcData=function(){
     if(!mem){ toast("सदस्य चुनें"); return null; }
     o=Object.assign({},mem);
   }
-  const dob=v("idc-dob"), valid=v("idc-valid");
-  if(m==="form"||dob) o.dob=dob;
-  if(m==="form"||valid) o.valid=valid;
+  const aadhaar2=v("idc-aadhaar2").replace(/\D/g,""), valid=v("idc-valid");
+  if(aadhaar2) o.aadhaar=aadhaar2;
+  if(valid) o.valid=valid;
   return o;
 };
 window.saveFormMember=async function(){
@@ -600,7 +622,8 @@ window.idcPreview=function(){ const m=idcData(); if(!m) return; $("#idc-out").in
 window.idcPrint=function(){
   const m=idcData(); if(!m) return;
   const w=window.open("","_blank");
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ID Card - ${m.name||""}</title><style>body{font-family:sans-serif;display:flex;justify-content:center;padding:30px;margin:0}.idcard{width:340px;border-radius:16px;overflow:hidden;background:#fff;color:#111827;border:1px solid #d4af37;-webkit-print-color-adjust:exact;print-color-adjust:exact}.id-top{background:#0a1a3c;color:#fff;padding:14px;display:flex;gap:10px;align-items:center;border-bottom:3px solid #d4af37}.id-top img{width:54px;height:54px;border-radius:50%;background:#fff;object-fit:cover;border:2px solid #d4af37}.id-top b{font-size:1.02rem;color:#f5d76e;display:block}.id-top small{display:block;font-size:.68rem}.id-band{background:#d4af37;color:#0a1a3c;text-align:center;font-weight:800;font-size:.78rem;letter-spacing:2px;padding:5px}.id-mid{padding:14px 16px 4px;text-align:center}.id-photo{width:110px;height:135px;object-fit:cover;border-radius:10px;border:3px solid #d4af37;background:#f3f4f6}.id-name{font-size:1.2rem;font-weight:800;color:#0a1a3c;margin:8px 0 0}.id-role{font-size:.82rem;color:#1e3a8a;font-weight:700;margin-top:2px}.id-rows{margin:10px 16px 12px;border:1px solid #e5d48a;border-radius:10px;overflow:hidden;font-size:.82rem}.id-rows div{display:flex;justify-content:space-between;gap:8px;padding:6px 10px}.id-foot{background:#0a1a3c;color:#f5d76e;font-size:.75rem;font-weight:700;display:flex;justify-content:space-between;gap:8px;padding:8px 14px}</style></head><body>${idcHTML(m)}<script>onload=function(){setTimeout(function(){print()},400)}<\/script></body></html>`);
+  const css=`body{font-family:"Noto Sans Devanagari",sans-serif;display:flex;justify-content:center;padding:20px;margin:0;background:#eee}@media print{body{background:#fff;padding:0}}.idcard{width:340px;background:#fff;color:#111;border:1px solid #222;border-radius:6px;overflow:hidden;-webkit-print-color-adjust:exact;print-color-adjust:exact}.press-top{background:#c80000;text-align:center;padding:10px 8px 0}.press-top b{display:block;color:#fff;font-family:Arial Black,Arial,sans-serif;font-weight:900;font-size:52px;letter-spacing:6px;line-height:1}.press-top span{display:block;color:#fff;font-weight:800;font-size:17px;margin-top:2px}.press-wave{display:block;width:100%;height:20px;margin-top:6px}.press-mid{display:flex;gap:10px;padding:12px 12px 6px}.press-photo{flex:0 0 128px;text-align:center}.press-photo .ph{width:124px;height:152px;border:1.5px solid #111;border-radius:12px;object-fit:cover;background:#e8e8e8;display:flex;align-items:center;justify-content:center;color:#777}.press-idno{font-size:.82rem;font-weight:700;margin-top:6px}.press-right{flex:1;text-align:center}.press-right img.logo{width:64px;height:64px;object-fit:contain;margin:0 auto;display:block}.press-org{color:#c80000;font-weight:800;font-size:1.28rem;margin:4px 0 0}.press-sub{font-size:.74rem}.press-rule{height:3px;background:#c80000;margin:8px 0;border:0}.press-valid{color:#c80000;font-weight:800;font-size:.95rem}.press-rows{padding:10px 14px 12px;font-size:.92rem}.press-rows .pr{display:flex;gap:10px;padding:4px 0}.press-rows .pr span{flex:0 0 118px}.press-rows .pr b{flex:1}.press-foot{background:#c80000;color:#fff;text-align:center;font-size:.78rem;padding:8px 10px;line-height:1.6}`;
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ID Card - ${(m.name||"").replace(/</g,"&lt;")}</title><style>${css}</style></head><body>${idcHTML(m)}<script>onload=function(){setTimeout(function(){print()},400)}<\/script></body></html>`);
   w.document.close();
 };
 function vSocial(){

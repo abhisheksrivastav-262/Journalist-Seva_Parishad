@@ -318,6 +318,27 @@ a,button{-webkit-tap-highlight-color:transparent}
 @media(max-width:560px){.grid-leaders{grid-template-columns:1fr}.leader-card img{aspect-ratio:3/3}}
 /* landscape photo — बिना कटे पूरी दिखे */
 .leader-card--full img{aspect-ratio:4/3;object-fit:contain;background:#0a1a3c}
+/* ---------- Leadership slider (प्रदेश प्रभारी slide) ---------- */
+.lead-slider{position:relative}
+.lead-slider .grid-leaders{grid-auto-flow:column;grid-auto-columns:min(78%,320px);grid-template-columns:none;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;padding:6px 2px 18px;scrollbar-width:thin}
+.lead-slider .grid-leaders .leader-card{scroll-snap-align:center}
+.lead-slider .lead-nav{position:absolute;top:38%;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--navy);font-size:1.4rem;cursor:pointer;box-shadow:var(--shadow-sm);line-height:1;z-index:2}
+.lead-slider .lead-prev{left:-8px}.lead-slider .lead-next{right:-8px}
+.lead-slider .lead-dots{display:flex;gap:8px;justify-content:center;margin-top:2px}
+.lead-slider .lead-dots button{width:10px;height:10px;border-radius:50%;border:0;background:#c9d2ea;cursor:pointer;padding:0}
+.lead-slider .lead-dots button.active{background:var(--gold);width:26px;border-radius:99px}
+@media(max-width:640px){.lead-slider .lead-nav{display:none}}
+/* ---------- Members list (सदस्य सूची) ---------- */
+.members-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:24px}
+.m-card{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden;display:flex;gap:14px;padding:16px;align-items:center;transition:.25s}
+.m-card:hover{transform:translateY(-4px);box-shadow:var(--shadow)}
+.m-card .m-photo img,.m-card .m-photo .ph{width:84px;height:100px;object-fit:cover;border-radius:12px;border:1px solid var(--line);background:#eef2ff;display:block}
+.m-card .m-photo .ph{display:grid;place-items:center;color:#8a94ad;font-size:.8rem;font-weight:700}
+.m-card .m-body h3{margin:0 0 4px;color:var(--navy);font-size:1.05rem}
+.m-card .m-id,.m-card .m-phone{margin:0;font-size:.88rem;color:#33406b;font-weight:700}
+.m-card .m-role{margin:0;font-size:.86rem;color:var(--muted)}
+@media(max-width:1020px){.members-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){.members-grid{grid-template-columns:1fr}.m-card{padding:14px}}
 /* Footer social icons (only when URLs set) */
 .social-row{display:flex;gap:10px;margin-top:14px}
 .social-row a{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.25);color:#fff;text-decoration:none;font-weight:800;font-size:.9rem}

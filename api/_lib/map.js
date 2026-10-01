@@ -75,6 +75,8 @@ function memberToRow(o) {
     membership_id: o.memberId || o.membership_id || "", photo_url: o.img || o.photo || "",
     status: o.active === false ? "draft" : "active",
     join_date: o.joinDate || o.join_date || null, notes: o.address || o.notes || "",
+    aadhaar: String(o.aadhaar || "").replace(/\D/g,"").slice(0,12),
+    valid_upto: o.valid || "",
   };
 }
 function noticeToRow(o) {
@@ -114,6 +116,7 @@ function memberToPanel(m) {
     newspaper: m.organization || "", role: m.designation || "",
     city: m.city || "", district: m.district || "", state: m.state || "",
     email: m.email || "", active: m.status !== "draft",
+    aadhaar: m.aadhaar || "", valid: m.valid_upto || m.valid || "वर्ष 2026-27",
   };
 }
 function noticeToPanel(n) {

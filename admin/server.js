@@ -25,7 +25,7 @@ function dataWritePath(rel){
   try{ fs.mkdirSync(path.dirname(base), {recursive:true}); }catch(e){}
   return base;
 }
-const HTML_FILES = ["index.html","about.html","journalist-welfare.html","membership.html","activities.html","news.html","gallery.html","contact.html","privacy-policy.html","terms.html"];
+const HTML_FILES = ["index.html","about.html","journalist-welfare.html","membership.html","activities.html","news.html","gallery.html","contact.html","members.html","privacy-policy.html","terms.html"];
 const MAIN_JS = "js/main.js";
 
 /* ============ SUPABASE INTEGRATION (add-only; local JSON stays canonical fallback) ============ */
@@ -219,6 +219,18 @@ async function buildPublicBundle(){
       out.social={changed:jstr(links)!==jstr({fb:locS.fb||"",ig:locS.ig||"",x:locS.x||"",yt:locS.yt||""})&&(links.fb||links.ig||links.x||links.yt?true:false)||Object.keys(links).length>0&&jstr(links)!==jstr(locS),links}; setR("social","supabase");
     } else { out.social={changed:false,links:{}}; setR("social","local"); }
   }catch(e){ out.social={changed:false,links:{}}; setR("social","local"); }
+  // — members (local canonical; supabase mirror when live) —
+  try{
+    const r=await sbTable("members","created_at");
+    const loc=(L.members||[]).filter(m=>m.active!==false);
+    const norm=m=>({img:m.img||m.photo||"",name:m.name||"",memberId:m.memberId||m.membership_id||"",district:m.district||"",role:m.role||m.designation||"",newspaper:m.newspaper||m.organization||"",aadhaar:String(m.aadhaar||"").replace(/\D/g,"").slice(0,12),phone:m.phone||m.mobile||"",valid:m.valid||m.valid_upto||"वर्ष 2026-27",active:true});
+    if(r.ok&&r.rows.length){
+      const items=r.rows.filter(m=>(m.status||"active")!=="draft").map(m=>({img:m.photo_url||"",name:m.name||"",memberId:m.membership_id||"",district:m.district||"",role:m.designation||"",newspaper:m.organization||"",aadhaar:String(m.aadhaar||"").replace(/\D/g,"").slice(0,12),phone:m.mobile||"",valid:m.valid_upto||"वर्ष 2026-27",active:true}));
+      const sS=items.map(x=>[x.name,x.memberId,x.phone,x.img].join("|")).join(";;");
+      const sL=loc.map(x=>[x.name,(x.memberId||x.membership_id||""),(x.phone||x.mobile||""),(x.img||x.photo||"")].join("|")).join(";;");
+      out.members={changed:sS!==sL,items}; setR("members","supabase");
+    } else { out.members={changed:loc.length>0,items:loc.map(norm)}; setR("members","local"); }
+  }catch(e){ try{ const loc=(L.members||[]).filter(m=>m.active!==false); out.members={changed:loc.length>0,items:loc}; }catch(_){ out.members={changed:false,items:[]}; } setR("members","local"); }
   // — texts (only differing keys) —
   try{
     const r=await sbTable("site_content",null);
@@ -261,7 +273,7 @@ function mapListToRows(key,arr){
   if(key==="news") return arr.map((n,i)=>({slug:slugify(n.title||n.share,i),title:n.title||"",category:n.cat||"",description:n.desc||"",content:n.desc||"",featured_image:n.img||null,date_text:n.date||"",published:n.active!==false,sort_order:i}));
   if(key==="activities") return arr.map((a,i)=>({title:a.title||"",description:a.desc||"",image_url:a.img||null,date_text:a.date||"",location:a.place||"",category:a.cat||"",published:a.active!==false,sort_order:i}));
   if(key==="gallery") return arr.map((g,i)=>({title:g.cap||g.title||"",image_url:g.img||"",category:g.cat||"",caption:g.cap||"",active:g.active!==false,sort_order:i}));
-  if(key==="members") return arr.map(m=>({name:m.name||"",mobile:m.phone||m.mobile||"",email:m.email||"",organization:m.newspaper||m.organization||"",designation:m.role||m.designation||"",city:m.city||"",district:m.district||"",state:m.state||"",membership_id:m.memberId||m.membership_id||"",photo_url:m.img||m.photo||"",status:m.active===false?"draft":"active",join_date:m.joinDate||m.join_date||null,notes:m.address||m.notes||""}));
+  if(key==="members") return arr.map(m=>({name:m.name||"",mobile:m.phone||m.mobile||"",email:m.email||"",organization:m.newspaper||m.organization||"",designation:m.role||m.designation||"",city:m.city||"",district:m.district||"",state:m.state||"",membership_id:m.memberId||m.membership_id||"",photo_url:m.img||m.photo||"",status:m.active===false?"draft":"active",join_date:m.joinDate||m.join_date||null,notes:m.address||m.notes||"",aadhaar:String(m.aadhaar||"").replace(/\D/g,"").slice(0,12),valid_upto:m.valid||""}));
   if(key==="notices") return arr.map(n=>({title:n.title||"",description:n.desc||n.description||"",date_text:n.date||"",published:n.active!==false}));
   if(key==="donors") return arr.map(d=>({name:d.name||"",amount:d.amount||"",message:d.note||d.message||"",purpose:d.purpose||""}));
   if(key==="objectives") return arr.map((t,i)=>({title:t.text||t.title||"",description:t.desc||t.description||"",active:t.active!==false,sort_order:i}));
@@ -424,7 +436,7 @@ const FIELDS = [
  {id:"home_wd5", page:"Home", section:"Welfare cards", file:"index.html", label:"Card 5 text", old:"<p>पत्रकारों के बीच सहयोग और नेटवर्क को मजबूत करना।</p>"},
  {id:"home_wt6", page:"Home", section:"Welfare cards", file:"index.html", label:"Card 6 title", old:"<h3>जनहित पत्रकारिता</h3>"},
  {id:"home_wd6", page:"Home", section:"Welfare cards", file:"index.html", label:"Card 6 text", old:"<p>जिम्मेदार एवं जनहित आधारित पत्रकारिता को प्रोत्साहित करना।</p>"},
- {id:"home_ev_h2", page:"Home", section:"Event highlight", file:"index.html", label:"Event title", old:"<h2>चेयरमैन जनरल सेवा परिषद संजय कुमार मिश्र गूगल मीट को संबोधित करते हुए</h2>"},
+  {id:"home_ev_h2", page:"Home", section:"Event highlight", file:"index.html", label:"Event title", old:"<h2>चेयरमैन जर्नलिस्ट सेवा परिषद संजय कुमार मिश्र गूगल मीट को संबोधित करते हुए</h2>"},
  {id:"home_ev_lead", page:"Home", section:"Event highlight", file:"index.html", label:"Event text", old:'<p class="lead">संगठन के कार्यक्रमों और गतिविधियों की झलकियां — अधिक तस्वीरों के लिए मीडिया गैलरी देखें।</p>'},
  {id:"home_cta_h2", page:"Home", section:"CTA band", file:"index.html", label:"CTA heading", old:"<h2>पत्रकार समुदाय से जुड़ें</h2>"},
  {id:"home_cta_p", page:"Home", section:"CTA band", file:"index.html", label:"CTA text", old:"<p>सदस्यता प्रक्रिया सरल और डिजिटल है — फॉर्म भरें, जानकारी सीधे WhatsApp पर भेजी जाएगी।</p>"},
@@ -606,6 +618,18 @@ function socialHTML(s){
   if(!live.length) return "";
   return `<div class="social-row">\n` + live.map(([k,label,icon])=>`<a href="${s[k]}" target="_blank" rel="noopener" aria-label="${label}">${icon}</a>`).join("\n") + `\n</div>`;
 }
+function escHM(s){ return String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function membersHTML(members){
+  const live=(members||[]).filter(m=>m.active!==false);
+  if(!live.length) return `<p class="hint" style="text-align:center">सदस्यों की सूची जल्द प्रकाशित होगी।</p>`;
+  return `<div class="members-grid">\n` + live.map(m=>{
+    const img=m.img||m.photo||"";
+    const ph=img?`<img loading="lazy" src="${escHM(img)}" alt="${escHM(m.name||"सदस्य")}">`:`<div class="m-photo ph">Photo</div>`;
+    const role=m.role||m.designation||"सदस्य";
+    const dist=m.district?`, ${escHM(m.district)}`:"";
+    return `<div class="m-card reveal visible"><div class="m-photo">${ph}</div><div class="m-body"><h3>${escHM(m.name||"")}</h3><p class="m-id">🪪 ID: ${escHM(m.memberId||m.membership_id||"-")}</p><p class="m-role">${escHM(role)}${dist}</p><p class="m-phone">📱 ${escHM(m.phone||m.mobile||"-")}</p></div></div>`;
+  }).join("\n") + `\n</div>`;
+}
 function chipsHTML(cats, attr){
   return `<button class="chip active" data-${attr}="all">सभी</button>` + cats.map(c=>`\n<button class="chip" data-${attr}="${c.value}">${c.label}</button>`).join("");
 }
@@ -677,12 +701,13 @@ function transformFile(file, content, warnings){
   if(file==="index.html"||file==="about.html") doMarker("OBJECTIVES",objectivesHTML(L.objectives));
   if(file==="membership.html"){ doMarker("DONORS-WALL",donorsHTML(L.donors)); doMarker("BANK-BLOCK",bankHTML(DB.settings.bank)); }
   if(file==="consumer.html") doMarker("CONSUMER-LIST",consumerHTML(L.consumer));
+  if(file==="members.html") doMarker("MEMBERS",membersHTML(L.members));
   if(file==="activities.html"&&L.notices.some(n=>n.active!==false)){
     // notices render above timeline (after toolbar placeholder)
     const r=repMarker(content,"NOTICES",'<div class="timeline">\n'+noticesHTML(L.notices)+'\n</div>',warnings,file);
     if(r.content!==content){ content=r.content; mark(true); }
   }
-  const SOCIAL_FILES=["index.html","about.html","journalist-welfare.html","membership.html","activities.html","news.html","gallery.html","contact.html","consumer.html"];
+  const SOCIAL_FILES=["index.html","about.html","journalist-welfare.html","membership.html","activities.html","news.html","gallery.html","contact.html","consumer.html","members.html"];
   if(SOCIAL_FILES.includes(file)) doMarker("SOCIAL",socialHTML(DB.settings.social));
   if(file===MAIN_JS){
     repBlock(/const ADS = \[[\s\S]*?\n  \];/, adsJS(L.ads), "ads:array");

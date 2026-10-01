@@ -138,6 +138,14 @@ async function buildBundle(env, sbReq) {
       out.ads = { changed: jstr(merged) !== jstr(st), items: merged }; setR("ads", "supabase");
     } else { out.ads = { changed: false, items: [] }; setR("ads", "local"); }
   } catch (e) { out.ads = { changed: false, items: [] }; setR("ads", "local"); }
+  // — members (public list: photo, ID, name, mobile) —
+  try {
+    const r = await sbTable(env, sbReq, "members", "created_at");
+    if (r.ok && r.rows.length) {
+      const items = r.rows.filter((m) => (m.status || "active") !== "draft").map((m) => ({ img: m.photo_url || "", name: m.name || "", memberId: m.membership_id || "", district: m.district || "", role: m.designation || "", newspaper: m.organization || "", aadhaar: String(m.aadhaar || "").replace(/\D/g, "").slice(0, 12), phone: m.mobile || "", valid: m.valid_upto || "वर्ष 2026-27", active: true }));
+      out.members = { changed: items.length > 0, items }; setR("members", "supabase");
+    } else { out.members = { changed: false, items: [] }; setR("members", "local"); }
+  } catch (e) { out.members = { changed: false, items: [] }; setR("members", "local"); }
   // — donation —
   try {
     const r = await sbTable(env, sbReq, "donation_settings", null);
