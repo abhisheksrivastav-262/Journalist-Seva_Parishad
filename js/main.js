@@ -261,12 +261,14 @@
     }catch(e){}
   }
   function dynFigure(l){
-    return '<figure class="leader-card reveal"><img loading="lazy" width="480" height="544" src="'+l.img+'" alt="'+l.alt+'"><figcaption>'+l.cap+'</figcaption></figure>';
+    return '<figure class="leader-card reveal visible"><img loading="lazy" width="480" height="544" src="'+l.img+'" alt="'+l.alt+'" style="height:300px;object-fit:cover;object-position:top center"><figcaption>'+l.cap+'</figcaption></figure>';
   }
   function dynFixLeaders(grid){
-    grid.querySelectorAll("figure.leader-card img").forEach(im=>{
-      const go=()=>{ try{ if(im.naturalWidth>im.naturalHeight){ const f=im.closest("figure"); if(f&&!f.classList.contains("leader-card--full")){ f.classList.add("leader-card--full"); im.setAttribute("width","480"); im.setAttribute("height","360"); } } }catch(e){} };
-      if(im.complete&&im.naturalWidth) go(); else im.addEventListener("load",go);
+    // सभी फोटो एक साइज: landscape हो या portrait — uniform cover, कोई --full नहीं
+    grid.querySelectorAll("figure.leader-card").forEach(function(f){
+      f.classList.remove("leader-card--full");
+      var im=f.querySelector("img");
+      if(im){ im.setAttribute("width","480"); im.setAttribute("height","544"); im.style.height="300px"; im.style.objectFit="cover"; im.style.objectPosition="top center"; }
     });
   }
   function dynNewsCard(n){
@@ -419,8 +421,9 @@
       var img=m.img||m.photo||"";
       var ph=img?'<img loading="lazy" src="'+esc(img)+'" alt="'+esc(m.name||"सदस्य")+'">':'<div class="m-photo ph">Photo</div>';
       var role=esc(m.role||m.designation||"सदस्य");
-      var dist=m.district?", "+esc(m.district):"";
-      return '<div class="m-card reveal visible"><div class="m-photo">'+ph+'</div><div class="m-body"><h3>'+esc(m.name||"")+'</h3><p class="m-id">🪪 ID: '+esc(m.memberId||m.membership_id||"-")+'</p><p class="m-role">'+role+dist+'</p><p class="m-phone">📱 '+esc(m.phone||m.mobile||"-")+'</p></div></div>';
+      var loc=[m.city,m.district].filter(Boolean).map(esc).join(", ");
+      var locStr=loc?role+", "+loc:role;
+      return '<div class="m-card reveal visible"><div class="m-photo">'+ph+'</div><div class="m-body"><h3>'+esc(m.name||"")+'</h3><p class="m-id">🪪 ID: '+esc(m.memberId||m.membership_id||"-")+'</p><p class="m-role">'+locStr+'</p><p class="m-phone">📱 '+esc(m.phone||m.mobile||"-")+'</p></div></div>';
     }).join("");
     dynObserve(grid);
   }
@@ -444,10 +447,17 @@
         });
       };
       var idx=0, timer=null;
-      var go=function(i){
+      var go=function(i,instant){
         var c=cards(); if(!c.length) return;
         idx=(i+c.length)%c.length;
-        try{ c[idx].scrollIntoView({behavior:"smooth",block:"nearest",inline:"center"}); }catch(e){}
+        try{
+          // सिर्फ grid के अंदर horizontal scroll — page vertical scroll बिल्कुल नहीं
+          var el=c[idx];
+          var gr=grid.getBoundingClientRect(), r=el.getBoundingClientRect();
+          var target=grid.scrollLeft+(r.left-gr.left)-((gr.width-r.width)/2);
+          if(instant) grid.scrollTo({left:target});
+          else grid.scrollTo({left:target,behavior:"smooth"});
+        }catch(e){}
         Array.from(dots.children).forEach(function(d,k){ d.classList.toggle("active",k===idx); });
       };
       var play=function(){ stop(); timer=setInterval(function(){ go(idx+1); },4000); };
@@ -462,7 +472,7 @@
         c.forEach(function(el,i){ var r=el.getBoundingClientRect(); var d=Math.abs((r.left+r.width/2)-(gr.left+gr.width/2)); if(d<bd){ bd=d; best=i; } });
         if(best!==idx){ idx=best; Array.from(dots.children).forEach(function(d,k){ d.classList.toggle("active",k===idx); }); }
       },{passive:true});
-      buildDots(); go(0); play();
+      buildDots(); Array.from(dots.children).forEach(function(d,k){ d.classList.toggle("active",k===0); }); play();
       var mo=new MutationObserver(function(){ buildDots(); });
       try{ mo.observe(grid,{childList:true}); }catch(e){}
     });

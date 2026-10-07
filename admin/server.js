@@ -223,9 +223,9 @@ async function buildPublicBundle(){
   try{
     const r=await sbTable("members","created_at");
     const loc=(L.members||[]).filter(m=>m.active!==false);
-    const norm=m=>({img:m.img||m.photo||"",name:m.name||"",memberId:m.memberId||m.membership_id||"",district:m.district||"",role:m.role||m.designation||"",newspaper:m.newspaper||m.organization||"",aadhaar:String(m.aadhaar||"").replace(/\D/g,"").slice(0,12),phone:m.phone||m.mobile||"",valid:m.valid||m.valid_upto||"वर्ष 2026-27",active:true});
+    const norm=m=>({img:m.img||m.photo||"",name:m.name||"",memberId:m.memberId||m.membership_id||"",city:m.city||"",district:m.district||"",state:m.state||"",email:m.email||"",role:m.role||m.designation||"",newspaper:m.newspaper||m.organization||"",aadhaar:String(m.aadhaar||"").replace(/\D/g,"").slice(0,12),phone:m.phone||m.mobile||"",valid:m.valid||m.valid_upto||"वर्ष 2026-27",active:true});
     if(r.ok&&r.rows.length){
-      const items=r.rows.filter(m=>(m.status||"active")!=="draft").map(m=>({img:m.photo_url||"",name:m.name||"",memberId:m.membership_id||"",district:m.district||"",role:m.designation||"",newspaper:m.organization||"",aadhaar:String(m.aadhaar||"").replace(/\D/g,"").slice(0,12),phone:m.mobile||"",valid:m.valid_upto||"वर्ष 2026-27",active:true}));
+      const items=r.rows.filter(m=>(m.status||"active")!=="draft").map(m=>({img:m.photo_url||"",name:m.name||"",memberId:m.membership_id||"",city:m.city||"",district:m.district||"",state:m.state||"",email:m.email||"",role:m.designation||"",newspaper:m.organization||"",aadhaar:String(m.aadhaar||"").replace(/\D/g,"").slice(0,12),phone:m.mobile||"",valid:m.valid_upto||"वर्ष 2026-27",active:true}));
       const sS=items.map(x=>[x.name,x.memberId,x.phone,x.img].join("|")).join(";;");
       const sL=loc.map(x=>[x.name,(x.memberId||x.membership_id||""),(x.phone||x.mobile||""),(x.img||x.photo||"")].join("|")).join(";;");
       out.members={changed:sS!==sL,items}; setR("members","supabase");
@@ -557,8 +557,8 @@ function seedDB(){
 
 /* ================= PUBLISH ENGINE ================= */
 function leaderCard(l){
-  const cls = l.full ? "leader-card leader-card--full reveal" : "leader-card reveal";
-  return `<figure class="${cls}">\n  <img loading="lazy" width="${l.w||480}" height="${l.h||544}" src="${l.img}" alt="${escQ(l.alt||l.cap)}">\n  <figcaption>${l.cap}</figcaption>\n</figure>`;
+  const cls = "leader-card reveal";
+  return `<figure class="${cls}">\n  <img loading="lazy" width="480" height="544" src="${l.img}" alt="${escQ(l.alt||l.cap)}">\n  <figcaption>${l.cap}</figcaption>\n</figure>`;
 }
 const indent6 = s=>s.split("\n").map(l=>"      "+l).join("\n");
 function newsCard(n){
@@ -626,8 +626,9 @@ function membersHTML(members){
     const img=m.img||m.photo||"";
     const ph=img?`<img loading="lazy" src="${escHM(img)}" alt="${escHM(m.name||"सदस्य")}">`:`<div class="m-photo ph">Photo</div>`;
     const role=m.role||m.designation||"सदस्य";
-    const dist=m.district?`, ${escHM(m.district)}`:"";
-    return `<div class="m-card reveal visible"><div class="m-photo">${ph}</div><div class="m-body"><h3>${escHM(m.name||"")}</h3><p class="m-id">🪪 ID: ${escHM(m.memberId||m.membership_id||"-")}</p><p class="m-role">${escHM(role)}${dist}</p><p class="m-phone">📱 ${escHM(m.phone||m.mobile||"-")}</p></div></div>`;
+    const loc=[m.city,m.district].filter(Boolean).map(escHM).join(", ");
+    const roleLoc=loc?`${escHM(role)}, ${loc}`:escHM(role);
+    return `<div class="m-card reveal visible"><div class="m-photo">${ph}</div><div class="m-body"><h3>${escHM(m.name||"")}</h3><p class="m-id">🪪 ID: ${escHM(m.memberId||m.membership_id||"-")}</p><p class="m-role">${roleLoc}</p><p class="m-phone">📱 ${escHM(m.phone||m.mobile||"-")}</p></div></div>`;
   }).join("\n") + `\n</div>`;
 }
 function chipsHTML(cats, attr){
