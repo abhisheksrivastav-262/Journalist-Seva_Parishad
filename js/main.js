@@ -136,9 +136,9 @@
     const media = a.img ? (/\.mp4(\?|$)/i.test(a.img)
       ? '<video class="ad-photo" src="'+a.img+'" controls preload="metadata"></video>'
       : '<img class="ad-photo" src="'+a.img+'" alt="'+a.title+'">') : "";
-    return '<span class="ad-tag">'+a.label+'</span>'
-      + media
-      + '<div><h3>'+a.title+'</h3><p>'+a.text+'</p>'
+    return media
+      + '<div class="ad-txt"><span class="ad-tag">'+a.label+'</span>'
+      + '<h3>'+a.title+'</h3><p>'+a.text+'</p>'
       + '<a class="btn btn-gold btn-sm" href="'+a.href+'">'+a.cta+'</a></div>';
   }
   function buildSlider(afterEl){
@@ -192,6 +192,8 @@
   const trustEl = document.querySelector(".trust");
   // Home पर prime spot (hero के नीचे) अब असली संगठन वीडियो का है — demo ad slider नहीं दिखेगा
   void trustEl;
+  const heroEl = document.querySelector(".hero");
+  if(isHome && heroEl) buildSlider(heroEl); // home: hero के नीचे असली विज्ञापन (photo/video सहित)
   const footerEl = document.querySelector("footer");
   if(isHome && footerEl) buildVideoAd(footerEl);
   const pageHero = document.querySelector(".page-hero");
@@ -385,7 +387,8 @@
     if(!A||!A.changed||!A.items||!A.items.length) return;
     window.__ADS=A.items;
     document.querySelectorAll(".ad-section,.ad-strip").forEach(e=>{ if(e.parentNode) e.parentNode.removeChild(e); });
-    if(pageHero&&!isHome&&!document.querySelector(".ad-strip")) buildStrip(pageHero);
+    if(isHome){ const h=document.querySelector(".hero"); if(h&&!document.querySelector(".ad-section")) buildSlider(h); }
+    else if(pageHero&&!isHome&&!document.querySelector(".ad-strip")) buildStrip(pageHero);
   }
   function dynDonation(D){
     if(!D) return;
