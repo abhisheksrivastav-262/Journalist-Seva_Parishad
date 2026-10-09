@@ -187,7 +187,7 @@ async function buildPublicBundle(){
     const r=await sbTable("ads","sort_order");
     if(r.ok&&r.rows.length&&st){
       const merged=r.rows.filter(a=>a.active!==false).map((a,i)=>{const b=st[i]||{label:"विज्ञापन",title:"",text:"",cta:"",href:"#",theme:"house"};
-        return {label:b.label,title:(a.title||b.title),text:b.text,cta:b.cta,href:(a.link_url||b.href),theme:b.theme,img:(a.image_url||b.img)};});
+        return {label:(a.label||b.label),title:(a.title||b.title),text:(a.text||b.text),cta:(a.cta||b.cta),href:(a.link_url||b.href),theme:(a.theme||b.theme),img:(a.image_url||b.img)};});
       out.ads={changed:jstr(merged)!==jstr(st),items:merged}; setR("ads","supabase");
     } else { out.ads={changed:false,items:[]}; setR("ads","local"); }
   }catch(e){ out.ads={changed:false,items:[]}; setR("ads","local"); }
@@ -290,13 +290,14 @@ async function mirrorList(key){
     const ex=await sbReq("GET","/rest/v1/"+table+"?select=id",undefined,true);
     if(!ex.ok){ sbLog("mirror list-read failed",table+" "+ex.status); return {ok:false}; }
     const ids=(Array.isArray(ex.json)?ex.json:[]).map(r=>r.id).filter(Boolean);
-    if(ids.length){
-      const del=await sbReq("DELETE","/rest/v1/"+table+"?id=in.("+ids.join(",")+")",undefined,true);
-      if(!del.ok){ sbLog("mirror delete failed",table+" "+del.status); return {ok:false}; }
-    }
+    // insert-first (old rows untouched if insert fails — never wipe the table)
     if(rows.length){
       const ins=await sbReq("POST","/rest/v1/"+table,rows,true);
       if(!ins.ok){ sbLog("mirror insert failed",table+" "+ins.status); return {ok:false}; }
+    }
+    if(ids.length){
+      const del=await sbReq("DELETE","/rest/v1/"+table+"?id=in.("+ids.join(",")+")",undefined,true);
+      if(!del.ok){ sbLog("mirror delete failed",table+" "+del.status); return {ok:false}; }
     }
     pubInvalidate();
     return {ok:true,count:rows.length};

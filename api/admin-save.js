@@ -16,19 +16,49 @@ async function upsertSite(env, pairs) {
     true, 8000, "resolution=merge-duplicates,return=minimal");
 }
 
+// Columns that may not exist on older Supabase schemas — stripped on retry
+// so a save NEVER fails outright (and never wipes the table).
+const STRIP_CANDIDATES = {
+  members: ["aadhaar", "valid_upto", "notes", "join_date", "state", "email"],
+  ads: ["placement", "label", "text", "cta", "theme"],
+  news: ["content"],
+  activities: ["location"],
+  gallery: ["caption"],
+  objectives: ["description"],
+  consumer: ["seo_title", "seo_description", "featured_image"],
+};
+function stripRow(table, row) {
+  const drop = STRIP_CANDIDATES[table] || [];
+  const out = {};
+  for (const k of Object.keys(row)) if (!drop.includes(k)) out[k] = row[k];
+  return out;
+}
+
 async function replaceList(env, table, rows) {
-  const ex = await sbReq(env, "GET", "/rest/v1/" + table + "?select=id", undefined, true);
-  if (!ex.ok) return ex;
-  const ids = (Array.isArray(ex.json) ? ex.json : []).map((r) => r.id).filter(Boolean);
-  if (ids.length) {
-    const del = await sbReq(env, "DELETE", "/rest/v1/" + table + "?id=in.(" + ids.join(",") + ")", undefined, true);
-    if (!del.ok) return del;
+  // SAFER ORDER: INSERT new rows FIRST, then DELETE old ones.
+  // If INSERT fails, old data stays intact (previously: delete-first wiped the table).
+  const pre = await sbReq(env, "GET", "/rest/v1/" + table + "?select=id", undefined, true);
+  if (!pre.ok) return pre;
+  const oldIds = (Array.isArray(pre.json) ? pre.json : []).map((r) => r.id).filter(Boolean);
+  const full = rows || [];
+  let attempt = full, partial = false;
+  let ins = { ok: true };
+  if (full.length) {
+    ins = await sbReq(env, "POST", "/rest/v1/" + table, attempt, true);
+    if (!ins.ok) {
+      const slim = full.map((r) => stripRow(table, r));
+      if (JSON.stringify(slim) !== JSON.stringify(full)) {
+        ins = await sbReq(env, "POST", "/rest/v1/" + table, slim, true);
+        if (ins.ok) { attempt = slim; partial = true; }
+      }
+    }
   }
-  if (rows.length) {
-    const ins = await sbReq(env, "POST", "/rest/v1/" + table, rows, true);
-    if (!ins.ok) return ins;
+  if (!ins.ok) return ins; // old rows untouched
+  if (oldIds.length) {
+    const del = await sbReq(env, "DELETE", "/rest/v1/" + table + "?id=in.(" + oldIds.join(",") + ")", undefined, true);
+    if (!del.ok) return { ok: true, count: attempt.length, partial, warn: "cleanup-pending" };
   }
-  return { ok: true, count: rows.length };
+  return { ok: true, count: attempt.length, partial };
 }
 
 async function saveBank(env, b) {
@@ -91,6 +121,6 @@ module.exports = async (request, response) => {
     else if (b.kind === "social") { await saveSocial(env, b.value); r = { ok: true }; }
     else r = { ok: true };
     if (!r.ok) return sendJson(response, 502, { error: "save failed, please retry" });
-    return sendJson(response, 200, { ok: true });
+    return sendJson(response, 200, { ok: true, partial: !!r.partial });
   } catch (e) { return sendJson(response, 500, { error: "server error" }); }
 };

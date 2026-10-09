@@ -105,7 +105,9 @@ function consumerToRow(o, i) {
 function adToRow(o, i) {
   return {
     title: o.title || "", image_url: o.img || null, link_url: o.href || null,
-    placement: "home", active: true, sort_order: i,
+    label: o.label || "विज्ञापन", text: o.text || "", cta: o.cta || "",
+    theme: o.theme || "house",
+    active: o.active !== false, sort_order: i,
   };
 }
 
@@ -139,8 +141,8 @@ function consumerToPanel(c) {
 }
 function adToPanel(a) {
   return {
-    img: a.image_url || null, label: "विज्ञापन", title: a.title || "", text: "",
-    cta: "संपर्क करें →", href: a.link_url || "", theme: "house", active: a.active !== false,
+    img: a.image_url || null, label: a.label || "विज्ञापन", title: a.title || "", text: a.text || "",
+    cta: a.cta || "संपर्क करें →", href: a.link_url || "", theme: a.theme || "house", active: a.active !== false,
   };
 }
 function bankToPanel(d) {

@@ -129,11 +129,15 @@
   const ADS = [
     {label:"विज्ञापन", title:"आपका विज्ञापन यहाँ", text:"इस प्रीमियम स्थान पर अपना विज्ञापन दिखाएं। संपर्क करें — 8318168274", cta:"संपर्क करें →", href:"tel:8318168274", theme:"house"},
     {label:"विज्ञापन • Demo", title:"Demo विज्ञापन", text:"यह उदाहरण स्लाइड है — असली विज्ञापनदाता मिलते ही बदल दी जाएगी।", cta:"Demo", href:"contact.html", theme:"t1"},
-    {label:"विज्ञापन • Demo", title:"Demo विज्ञापन", text:"यह उदाहरण स्लाइड है — असली विज्ञापनदाता मिलते ही बदल दी जाएगी।", cta:"Demo", href:"contact.html", theme:"t2"}
+    {label:"विज्ञापन • Demo", title:"Demo विज्ञापन", text:"यह उदाहरण स्लाइड है — असली विज्ञापनदाता मिलते ही बदल दी जाएगी।", cta:"Demo", href:"contact.html", theme:"t2"},
+    {label:"विज्ञापन", title:"demo", text:"demo", cta:"demo", href:"demo", theme:"house", img:"assets/misc/whatsapp-image-2026-10-08-at-170300.jpg"}
   ];
   function adSlideHTML(a){
+    const media = a.img ? (/\.mp4(\?|$)/i.test(a.img)
+      ? '<video class="ad-photo" src="'+a.img+'" controls preload="metadata"></video>'
+      : '<img class="ad-photo" src="'+a.img+'" alt="'+a.title+'">') : "";
     return '<span class="ad-tag">'+a.label+'</span>'
-      + (a.img?'<img class="ad-photo" src="'+a.img+'" alt="'+a.title+'">':"")
+      + media
       + '<div><h3>'+a.title+'</h3><p>'+a.text+'</p>'
       + '<a class="btn btn-gold btn-sm" href="'+a.href+'">'+a.cta+'</a></div>';
   }

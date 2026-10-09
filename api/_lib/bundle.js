@@ -133,7 +133,7 @@ async function buildBundle(env, sbReq) {
     if (r.ok && r.rows.length && st) {
       const merged = r.rows.filter((a) => a.active !== false).map((a, i) => {
         const b = st[i] || { label: "विज्ञापन", title: "", text: "", cta: "", href: "#", theme: "house" };
-        return { label: b.label, title: (a.title || b.title), text: b.text, cta: b.cta, href: (a.link_url || b.href), theme: b.theme, img: (a.image_url || b.img) };
+        return { label: (a.label || b.label), title: (a.title || b.title), text: (a.text || b.text), cta: (a.cta || b.cta), href: (a.link_url || b.href), theme: (a.theme || b.theme), img: (a.image_url || b.img) };
       });
       out.ads = { changed: jstr(merged) !== jstr(st), items: merged }; setR("ads", "supabase");
     } else { out.ads = { changed: false, items: [] }; setR("ads", "local"); }

@@ -250,10 +250,13 @@ function fld(id,val,type,label,bare){
 function fld2(k,v,label){ return `<label class="f">${label}</label><input type="text" data-k="${k}" value="${(v??"").replace(/"/g,"&quot;")}">`; }
 function gFld(key,val,label){ return `<label class="f">${label}</label><input type="text" data-g="${key}" value="${(val??"").replace(/"/g,"&quot;")}">`; }
 async function saveFields(){
-  for(const el of document.querySelectorAll("[data-f]")){ const def=(DATA.fieldDefs.find(f=>f.id===el.dataset.f)||{}); await api("/api/save",{method:"POST",body:JSON.stringify({kind:"field",id:el.dataset.f,value:bareWrap(el.value,def.bare)})}); }
-  for(const el of document.querySelectorAll("[data-g]")){ await api("/api/save",{method:"POST",body:JSON.stringify({kind:"globals",id:el.dataset.g,value:el.value})}); }
-  for(const el of document.querySelectorAll("[data-seo]")){ const [f,k]=el.dataset.seo.split("|"); DATA.seo[f]=DATA.seo[f]||{}; DATA.seo[f][k]=el.value; }
-  for(const f in (DATA.seo||{})) await api("/api/save",{method:"POST",body:JSON.stringify({kind:"seo",id:f,value:DATA.seo[f]})});
+  toast("Saving…");
+  try{
+    for(const el of document.querySelectorAll("[data-f]")){ const def=(DATA.fieldDefs.find(f=>f.id===el.dataset.f)||{}); await api("/api/save",{method:"POST",body:JSON.stringify({kind:"field",id:el.dataset.f,value:bareWrap(el.value,def.bare)})}); }
+    for(const el of document.querySelectorAll("[data-g]")){ await api("/api/save",{method:"POST",body:JSON.stringify({kind:"globals",id:el.dataset.g,value:el.value})}); }
+    for(const el of document.querySelectorAll("[data-seo]")){ const [f,k]=el.dataset.seo.split("|"); DATA.seo[f]=DATA.seo[f]||{}; DATA.seo[f][k]=el.value; }
+    for(const f in (DATA.seo||{})) await api("/api/save",{method:"POST",body:JSON.stringify({kind:"seo",id:f,value:DATA.seo[f]})});
+  }catch(e){ toast("❌ Save नहीं हुआ: "+e.message); return; }
   await reloadData(); toast("Saved ✓"); autoPub();
 }
 const PAGE_FILE={Home:"index.html",About:"about.html",Welfare:"journalist-welfare.html",Membership:"membership.html",News:"news.html",Activities:"activities.html",Gallery:"gallery.html",Contact:"contact.html"};
@@ -369,7 +372,8 @@ window.saveItem=async function(key,i){
   if(key==="objectives"&&!(o.text||"").trim()){ toast("उद्देश्य लिखें"); return; }
   if((key==="notices"||key==="consumer")&&!(o.title||"").trim()){ toast("Title भरें"); return; }
   if(i<0) DATA.lists[key].push(o);
-  await api("/api/save",{method:"POST",body:JSON.stringify({kind:"list",id:key,value:DATA.lists[key]})});
+  try{ await api("/api/save",{method:"POST",body:JSON.stringify({kind:"list",id:key,value:DATA.lists[key]})}); }
+  catch(e){ if(i<0) DATA.lists[key].pop(); toast("❌ Save नहीं हुआ: "+e.message); return; }
   closeModal(); nav(); toast("Saved ✓"); autoPub();
 };
 /* ---------- NEWSROOM EDITOR (reference-style full page) ---------- */
@@ -389,15 +393,19 @@ function edBlank(key){
   if(key==="consumer") return {title:"",date:"",desc:"",active:true};
   return {label:"विज्ञापन",title:"",text:"",cta:"",href:"",theme:"house",active:true};
 }
-function edUploader(img){
-  const src=img?((String(img).startsWith("http://")||String(img).startsWith("https://"))?img:"/"+String(img).replace(/^\/+/,"")):"";
-  return `<label class="f">📷 Photo ${img?"":"*"}</label>
-  <div class="upbox">${img?`<img id="ed-preview" src="${src}">`:`<div class="up-empty" id="ed-empty">📷<br>कोई photo नहीं<br><small>नीचे से चुनें</small></div><img id="ed-preview" style="display:none">`}</div>
-  <div class="up-btns"><select id="ed-folder" style="flex:0 0 120px"><option value="gallery">gallery</option><option value="leaders">leaders</option><option value="misc">misc</option></select>
-  <label class="btn btn-b btn-sm">📁 Choose File<input type="file" id="ed-file" accept="image/*" hidden></label>
+function edUploader(img,allowVideo){
+  const s=String(img||"");
+  const isVid=/\.mp4(\?|$)/i.test(s);
+  const src=s?(((s.startsWith("http://")||s.startsWith("https://"))?s:"/"+s.replace(/^\/+/,""))):"";
+  const prevHtml=!s?`<div class="up-empty" id="ed-empty">📷<br>कोई photo नहीं<br><small>नीचे से चुनें</small></div><img id="ed-preview" style="display:none"><video id="ed-previewv" style="display:none" controls></video>`
+    :(isVid?`<video id="ed-previewv" src="${src}" style="width:100%;max-height:320px;background:#000" controls></video><img id="ed-preview" style="display:none">`:`<img id="ed-preview" src="${src}"><video id="ed-previewv" style="display:none" controls></video>`);
+  return `<label class="f">📷 Photo${allowVideo?" / Video":""} ${(!img&&!allowVideo)?"*":""}</label>
+  <div class="upbox">${prevHtml}</div>
+  <div class="up-btns"><select id="ed-folder" style="flex:0 0 120px"><option value="gallery">gallery</option><option value="leaders">leaders</option>${allowVideo?'<option value="video">video (mp4)</option>':""}<option value="misc">misc</option></select>
+  <label class="btn btn-b btn-sm">📁 Choose File<input type="file" id="ed-file" accept="${allowVideo?"image/*,video/mp4":"image/*"}" hidden></label>
   <button class="btn btn-g btn-sm" onclick="openPicker()">🖼 Library</button>
   <button class="btn btn-g btn-sm" onclick="clearEdImg()">✕ हटाएं</button></div>
-  <input type="hidden" id="ed-img" value="${img||""}">`;
+  <input type="hidden" id="ed-img" value="${s.replace(/"/g,"&quot;")}">`;
 }
 function edCatSel(cur,catsKey){
   const cats=(DATA.lists[catsKey]||[]);
@@ -409,12 +417,12 @@ function edMainFields(key,it){
   if(key==="news") return edUploader(it.img)+edCatSel(it.cat,"newsCats")+`<label class="f">Title *</label><input type="text" id="ed-title" class="ed-title" value="${esc(it.title)}" placeholder="खबर का शीर्षक…"><label class="f">Tag (Hindi)</label><input type="text" id="ed-tag" value="${esc(it.tag)}"><label class="f">Date line</label><input type="text" id="ed-date" value="${esc(it.date)}"><label class="f">Description</label><textarea id="ed-desc" oninput="edCount(this)" placeholder="पूरी खबर…">${(it.desc||"").replace(/</g,"&lt;")}</textarea><div class="count" id="ed-count"></div>`;
   if(key==="activities") return edUploader(it.img)+`<label class="f">Title *</label><input type="text" id="ed-title" class="ed-title" value="${esc(it.title)}" placeholder="गतिविधि का नाम…">`+edCatSel(it.cat,"actCats")+`<label class="f">Tag (Hindi)</label><input type="text" id="ed-tag" value="${esc(it.tag)}"><label class="f">Date</label><input type="text" id="ed-date" value="${esc(it.date)}"><label class="f">Place</label><input type="text" id="ed-place" value="${esc(it.place)}"><label class="f">Description</label><textarea id="ed-desc" oninput="edCount(this)">${(it.desc||"").replace(/</g,"&lt;")}</textarea><div class="count" id="ed-count"></div>`;
   if(key==="gallery") return edUploader(it.img)+`<label class="f">Caption *</label><input type="text" id="ed-cap" value="${esc(it.cap)}" placeholder="फोटो के नीचे दिखेगा…">`+edCatSel(it.cat,"galCats")+`<label class="f"><input type="checkbox" id="ed-tall" ${it.tall?"checked":""}> Tall frame?</label>`;
-  if(key==="members") return edUploader(it.img)+`<label class="f">पूरा नाम *</label><input type="text" id="ed-name" value="${esc(it.name)}"><label class="f">ID संख्या *</label><input type="text" id="ed-memberId" value="${esc(it.memberId)}"><label class="f">शहर *</label><input type="text" id="ed-city" value="${esc(it.city)}" placeholder="जैसे — कानपुर"><label class="f">जिला *</label><input type="text" id="ed-district" value="${esc(it.district)}"><label class="f">राज्य</label><input type="text" id="ed-state" value="${esc(it.state)}"><label class="f">ईमेल</label><input type="text" id="ed-email" value="${esc(it.email)}"><label class="f">पद / भूमिका</label><input type="text" id="ed-role" value="${esc(it.role)}"><label class="f">मीडिया संस्थान *</label><input type="text" id="ed-newspaper" value="${esc(it.newspaper)}"><label class="f">आधार (12 अंक)</label><input type="text" id="ed-aadhaar" value="${esc(it.aadhaar)}"><label class="f">मोबाइल *</label><input type="text" id="ed-phone" value="${esc(it.phone)}"><label class="f">वैधता</label><input type="text" id="ed-valid" value="${esc(it.valid||"वर्ष 2026-27")}">`;
+  if(key==="members") return edUploader(it.img)+`<label class="f">पूरा नाम *</label><input type="text" id="ed-name" value="${esc(it.name)}"><label class="f">ID संख्या *</label><input type="text" id="ed-memberId" value="${esc(it.memberId)}"><label class="f">शहर *</label><input type="text" id="ed-city" value="${esc(it.city)}" placeholder="जैसे — कानपुर"><label class="f">जिला *</label><input type="text" id="ed-district" value="${esc(it.district)}"><label class="f">राज्य</label><input type="text" id="ed-state" value="${esc(it.state)}"><label class="f">ईमेल</label><input type="text" id="ed-email" value="${esc(it.email)}"><label class="f">पद / भूमिका</label><input type="text" id="ed-role" value="${esc(it.role)}"><label class="f">मीडिया संस्थान *</label><input type="text" id="ed-newspaper" value="${esc(it.newspaper)}"><label class="f">आधार (12 अंक)</label><input type="text" id="ed-aadhaar" value="${esc(it.aadhaar)}"><label class="f">मोबाइल *</label><input type="text" id="ed-phone" value="${esc(it.phone)}"><label class="f">पता</label><input type="text" id="ed-address" value="${esc(it.address)}"><label class="f">वैधता</label><input type="text" id="ed-valid" value="${esc(it.valid||"वर्ष 2026-27")}">`;
   if(key==="notices") return `<label class="f">प्रकार *</label><select id="ed-kind"><option value="event" ${(!it.kind||it.kind==="event")?"selected":""}>📅 आगामी कार्यक्रम</option><option value="achieve" ${it.kind==="achieve"?"selected":""}>🏆 उपलब्धि</option><option value="convention" ${it.kind==="convention"?"selected":""}>🎪 अधिवेशन</option></select><label class="f">Title *</label><input type="text" id="ed-title" class="ed-title" value="${esc(it.title)}"><label class="f">तारीख</label><input type="text" id="ed-date" value="${esc(it.date)}"><label class="f">स्थान</label><input type="text" id="ed-place" value="${esc(it.place)}"><label class="f">विवरण</label><textarea id="ed-desc">${(it.desc||"").replace(/</g,"&lt;")}</textarea>`;
   if(key==="donors") return `<label class="f">दानदाता का नाम *</label><input type="text" id="ed-name" value="${esc(it.name)}"><label class="f">राशि ₹</label><input type="text" id="ed-amount" value="${esc(it.amount)}"><label class="f">तारीख</label><input type="text" id="ed-date" value="${esc(it.date)}"><label class="f">नोट</label><input type="text" id="ed-note" value="${esc(it.note)}">`;
   if(key==="objectives") return `<label class="f">उद्देश्य *</label><textarea id="ed-text" placeholder="संस्था का उद्देश्य लिखें…">${(it.text||"").replace(/</g,"&lt;")}</textarea>`;
   if(key==="consumer") return `<label class="f">Title *</label><input type="text" id="ed-title" class="ed-title" value="${esc(it.title)}"><label class="f">तारीख</label><input type="text" id="ed-date" value="${esc(it.date)}"><label class="f">विवरण</label><textarea id="ed-desc">${(it.desc||"").replace(/</g,"&lt;")}</textarea>`;
-  return `<label class="f">Badge</label><input type="text" id="ed-label" value="${esc(it.label)}"><label class="f">Title *</label><input type="text" id="ed-title" class="ed-title" value="${esc(it.title)}"><label class="f">Text</label><textarea id="ed-text">${(it.text||"").replace(/</g,"&lt;")}</textarea><label class="f">Button text</label><input type="text" id="ed-cta" value="${esc(it.cta)}"><label class="f">Button link</label><input type="text" id="ed-href" value="${esc(it.href)}"><label class="f">Theme</label><select id="ed-theme"><option ${it.theme==="house"?"selected":""}>house</option><option ${it.theme==="t1"?"selected":""}>t1</option><option ${it.theme==="t2"?"selected":""}>t2</option></select>`;
+  return edUploader(it.img,true)+`<label class="f">Badge</label><input type="text" id="ed-label" value="${esc(it.label)}"><label class="f">Title *</label><input type="text" id="ed-title" class="ed-title" value="${esc(it.title)}"><label class="f">Text</label><textarea id="ed-text">${(it.text||"").replace(/</g,"&lt;")}</textarea><label class="f">Button text</label><input type="text" id="ed-cta" value="${esc(it.cta)}"><label class="f">Button link</label><input type="text" id="ed-href" value="${esc(it.href)}"><label class="f">Theme</label><select id="ed-theme"><option ${it.theme==="house"?"selected":""}>house</option><option ${it.theme==="t1"?"selected":""}>t1</option><option ${it.theme==="t2"?"selected":""}>t2</option></select>`;
 }
 function vEditor(key,idx){
   if(!ED_TITLES[key]){ location.hash="#home"; return; }
@@ -439,13 +447,34 @@ function wireEditor(){
 }
 window.edCount=function(t){ const c=$("#ed-count"); if(c) c.textContent=(t.value||"").length+" अक्षर"; };
 function imgSrc(p){ p=String(p||""); return (p.startsWith("http://")||p.startsWith("https://"))?p:"/"+p.replace(/^\/+/,""); }
+function fileToB64(f){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=()=>rej(new Error("file read failed")); r.readAsDataURL(f); }); }
 async function uploadFile(f, folder){
+  if(!f) throw new Error("file नहीं मिली");
+  if(f.size>15*1024*1024) throw new Error("फाइल बहुत बड़ी है (15MB से कम रखें)");
+  const mime=f.type||(String(f.name||"").toLowerCase().endsWith(".mp4")?"video/mp4":"image/jpeg");
+  let fld=folder||"gallery";
+  if(mime.startsWith("video")) fld="video"; // server: video सिर्फ video folder में
   toast("Uploading…");
-  const s=await api("/api/media/sign",{method:"POST",body:JSON.stringify({name:f.name,mime:f.type||"image/jpeg",folder:folder||"gallery"})});
-  const put=await fetch(s.uploadUrl,{method:"PUT",headers:{"Content-Type":f.type||"image/jpeg","x-upsert":"true"},body:f});
-  if(!put.ok) throw new Error("Storage upload failed ("+put.status+")");
-  const r=await api("/api/media/register",{method:"POST",body:JSON.stringify({path:s.path,key:s.key,name:f.name,mime:f.type||"image/jpeg",size:f.size||0,folder:folder||"gallery"})});
-  return r;
+  // 1) signed upload (production/Supabase) — NOTE: signed URL पर x-upsert header न भेजें (CORS fail होता है)
+  try{
+    const s=await api("/api/media/sign",{method:"POST",body:JSON.stringify({name:f.name,mime:mime,folder:fld})});
+    if(!s.uploadUrl) throw new Error(s.error||"sign failed");
+    const put=await fetch(s.uploadUrl,{method:"PUT",headers:{"Content-Type":mime},body:f});
+    if(!put.ok) throw new Error("Storage upload failed ("+put.status+")");
+    const r=await api("/api/media/register",{method:"POST",body:JSON.stringify({path:s.path,key:s.key,name:f.name,mime:mime,size:f.size||0,folder:fld})});
+    return r;
+  }catch(e){
+    const msg=String((e&&e.message)||e);
+    // 2) fallback: local server (admin/server.js) में sign route नहीं है — base64 /api/upload (≤3MB)
+    if(f.size<=3*1024*1024 && (/not found|sign failed|Failed to fetch|Network/i.test(msg))){
+      try{
+        const data=await fileToB64(f);
+        const r=await api("/api/upload",{method:"POST",body:JSON.stringify({data:data,name:f.name,folder:(fld==="video"?"video":"misc")})});
+        return r;
+      }catch(e2){ throw new Error(String((e2&&e2.message)||e2)); }
+    }
+    throw new Error(msg);
+  }
 }
 async function uploadEdFile(f){
   if(!f) return;
@@ -453,12 +482,15 @@ async function uploadEdFile(f){
     setEdImg(d.path); toast("Uploaded ✓");
   }catch(e){ toast(e.message); }
 }
-function setEdImg(p){ const h=$("#ed-img"); if(h) h.value=p; const im=$("#ed-preview"); if(im){ im.src=imgSrc(p); im.style.display=""; } const em=$("#ed-empty"); if(em) em.style.display="none"; }
-window.clearEdImg=function(){ const h=$("#ed-img"); if(h) h.value=""; const im=$("#ed-preview"); if(im) im.style.display="none"; const em=$("#ed-empty"); if(em) em.style.display=""; };
+function setEdImg(p){ const h=$("#ed-img"); if(h) h.value=p; const isVid=/\.mp4(\?|$)/i.test(String(p||""));
+  const im=$("#ed-preview"), vd=$("#ed-previewv");
+  if(isVid){ if(im) im.style.display="none"; if(vd){ vd.src=imgSrc(p); vd.style.display=""; } }
+  else { if(vd) vd.style.display="none"; if(im){ im.src=imgSrc(p); im.style.display=""; } }
+  const em=$("#ed-empty"); if(em) em.style.display="none"; }
+window.clearEdImg=function(){ const h=$("#ed-img"); if(h) h.value=""; const im=$("#ed-preview"); if(im) im.style.display="none"; const vd=$("#ed-previewv"); if(vd){ vd.removeAttribute("src"); vd.style.display="none"; } const em=$("#ed-empty"); if(em) em.style.display=""; };
 window.openPicker=async function(){
   const d=await api("/api/media");
-  const imgs=d.files.filter(f=>!f.path.endsWith(".mp4"));
-  openModal(`<h2>🖼 Library से चुनें</h2><div class="media-grid">${imgs.map(f=>`<figure style="cursor:pointer" onclick="pickImg('${f.path}')"><img src="${imgSrc(f.path)}" loading="lazy"><figcaption>${f.path.split("/").pop()}</figcaption></figure>`).join("")||'<p class="mut">कोई photo नहीं — ऊपर Choose File से upload करें।</p>'}</div><div style="margin-top:12px"><button class="btn btn-g" onclick="closeModal()">Cancel</button></div>`);
+  openModal(`<h2>🖼 Library से चुनें</h2><div class="media-grid">${d.files.map(f=>{ const u=imgSrc(f.path); const th=f.path.endsWith(".mp4")?`<video src="${u}" preload="metadata"></video>`:`<img src="${u}" loading="lazy">`; return `<figure style="cursor:pointer" onclick="pickImg('${f.path}')">${th}<figcaption>${f.path.split("/").pop()}</figcaption></figure>`; }).join("")||'<p class="mut">कोई photo नहीं — ऊपर Choose File से upload करें।</p>'}</div><div style="margin-top:12px"><button class="btn btn-g" onclick="closeModal()">Cancel</button></div>`);
 };
 window.pickImg=function(p){ setEdImg(p); closeModal(); };
 function gatherEditor(key){
@@ -476,8 +508,16 @@ function gatherEditor(key){
     if(!err&&!o.title) err="Title भरें"; }
   if(key==="gallery"){ o.cap=gv("ed-cap"); o.cat=gv("ed-cat"); o.tall=!!gv("ed-tall"); o.alt=o.cap;
     if(!err&&!o.cap) err="Caption भरें"; }
-  if(key==="members"){ o.name=gv("ed-name"); o.memberId=gv("ed-memberId"); o.city=gv("ed-city"); o.district=gv("ed-district"); o.state=gv("ed-state"); o.email=gv("ed-email"); o.role=gv("ed-role"); o.newspaper=gv("ed-newspaper"); o.aadhaar=gv("ed-aadhaar"); o.phone=gv("ed-phone"); o.valid=gv("ed-valid");
-    if(!err&&!(o.name&&o.phone)) err="नाम + मोबाइल भरें"; }
+  if(key==="members"){ o.name=gv("ed-name"); o.memberId=gv("ed-memberId"); o.city=gv("ed-city"); o.district=gv("ed-district"); o.state=gv("ed-state"); o.email=gv("ed-email"); o.role=gv("ed-role"); o.newspaper=gv("ed-newspaper"); o.aadhaar=gv("ed-aadhaar"); o.phone=gv("ed-phone"); o.address=gv("ed-address"); o.valid=gv("ed-valid");
+    const miss=[];
+    if(!(o.name||"").trim()) miss.push("पूरा नाम");
+    if(!(o.memberId||"").trim()) miss.push("ID संख्या");
+    if(!(o.city||"").trim()) miss.push("शहर");
+    if(!(o.district||"").trim()) miss.push("जिला");
+    if(!(o.newspaper||"").trim()) miss.push("मीडिया संस्थान");
+    if(!(o.phone||"").trim()) miss.push("मोबाइल");
+    if(!err&&miss.length) err="ये भरें: "+miss.join(", ");
+    if(!err&&(o.aadhaar||"").replace(/\D/g,"")&&(o.aadhaar||"").replace(/\D/g,"").length!==12) err="आधार 12 अंक का होना चाहिए (या खाली रखें)"; }
   if(key==="notices"){ o.kind=gv("ed-kind"); o.title=gv("ed-title"); o.date=gv("ed-date"); o.place=gv("ed-place"); o.desc=gv("ed-desc");
     if(!err&&!o.title) err="Title भरें"; }
   if(key==="donors"){ o.name=gv("ed-name"); o.amount=gv("ed-amount"); o.date=gv("ed-date"); o.note=gv("ed-note");
@@ -497,12 +537,23 @@ window.saveEditor=async function(key,idx){
   if(g.err){ toast(g.err); return; }
   const o=g.o;
   if(o._newcat){ o.cat=o._newcat.toLowerCase().replace(/\s+/g,"-"); const ck={news:"newsCats",activities:"actCats",gallery:"galCats"}[key];
-    if(ck&&!DATA.lists[ck].some(c=>c.value===o.cat)){ DATA.lists[ck].push({value:o.cat,label:o._newcat}); await api("/api/save",{method:"POST",body:JSON.stringify({kind:"list",id:ck,value:DATA.lists[ck]})}); } }
+    if(ck&&!DATA.lists[ck].some(c=>c.value===o.cat)){ DATA.lists[ck].push({value:o.cat,label:o._newcat}); try{ await api("/api/save",{method:"POST",body:JSON.stringify({kind:"list",id:ck,value:DATA.lists[ck]})}); }catch(e){ toast("Category save नहीं हुई: "+e.message); return; } } }
   delete o._newcat;
   o.active=(($("#ed-active")||{}).value)!=="0";
-  if(idx<0){ DATA.lists[key].push(o); } else { Object.assign(DATA.lists[key][idx],o); }
-  await api("/api/save",{method:"POST",body:JSON.stringify({kind:"list",id:key,value:DATA.lists[key]})});
-  toast("Saved ✓"); autoPub(); location.hash="#"+ED_BACK[key];
+  const wasNew=idx<0;
+  const backup=wasNew?null:JSON.stringify(DATA.lists[key][idx]);
+  if(wasNew){ DATA.lists[key].push(o); } else { Object.assign(DATA.lists[key][idx],o); }
+  toast("Saving…");
+  try{
+    const r=await api("/api/save",{method:"POST",body:JSON.stringify({kind:"list",id:key,value:DATA.lists[key]})});
+    if(r&&r.partial) toast("Saved ✓ (कुछ optional fields छोड़े गए)");
+    else toast("Saved ✓");
+  }catch(e){
+    if(wasNew) DATA.lists[key].pop(); else { try{ DATA.lists[key][idx]=JSON.parse(backup); }catch(_){} }
+    toast("❌ Save नहीं हुआ: "+e.message+" — दोबारा try करें");
+    return;
+  }
+  autoPub(); location.hash="#"+ED_BACK[key];
 };
 window.previewEditor=function(key){
   const g=gatherEditor(key);
@@ -514,14 +565,16 @@ window.previewEditor=function(key){
 };
 window.delItem=async function(key,i){
   if(!confirm("Delete करें?")) return;
-  DATA.lists[key].splice(i,1);
-  await api("/api/save",{method:"POST",body:JSON.stringify({kind:"list",id:key,value:DATA.lists[key]})});
+  const gone=DATA.lists[key].splice(i,1);
+  try{ await api("/api/save",{method:"POST",body:JSON.stringify({kind:"list",id:key,value:DATA.lists[key]})}); }
+  catch(e){ DATA.lists[key].splice(i,0,gone[0]); toast("❌ Delete नहीं हुआ: "+e.message); return; }
   nav(); toast("Deleted ✓"); autoPub();
 };
 window.moveItem=async function(key,i,d){
   const a=DATA.lists[key]; const j=i+d; if(j<0||j>=a.length) return;
   [a[i],a[j]]=[a[j],a[i]];
-  await api("/api/save",{method:"POST",body:JSON.stringify({kind:"list",id:key,value:a})});
+  try{ await api("/api/save",{method:"POST",body:JSON.stringify({kind:"list",id:key,value:a})}); }
+  catch(e){ [a[i],a[j]]=[a[j],a[i]]; toast("❌ Order save नहीं हुआ: "+e.message); return; }
   nav(); autoPub();
 };
 function vAds(){
@@ -537,13 +590,15 @@ window.addCat=async function(key){
   const v=$("#cv-"+key).value.trim(), l=$("#cl-"+key).value.trim();
   if(!v||!l){ toast("value + label दोनों भरें"); return; }
   DATA.lists[key].push({value:v,label:l});
-  await api("/api/save",{method:"POST",body:JSON.stringify({kind:"list",id:key,value:DATA.lists[key]})});
+  try{ await api("/api/save",{method:"POST",body:JSON.stringify({kind:"list",id:key,value:DATA.lists[key]})}); }
+  catch(e){ DATA.lists[key].pop(); toast("❌ Add नहीं हुआ: "+e.message); return; }
   nav(); toast("Added ✓"); autoPub();
 };
 window.delCat=async function(key,i){
   if(!confirm("Category हटाएं?")) return;
-  DATA.lists[key].splice(i,1);
-  await api("/api/save",{method:"POST",body:JSON.stringify({kind:"list",id:key,value:DATA.lists[key]})});
+  const gone=DATA.lists[key].splice(i,1);
+  try{ await api("/api/save",{method:"POST",body:JSON.stringify({kind:"list",id:key,value:DATA.lists[key]})}); }
+  catch(e){ DATA.lists[key].splice(i,0,gone[0]); toast("❌ Delete नहीं हुआ: "+e.message); return; }
   nav(); autoPub();
 };
 
@@ -718,7 +773,7 @@ window.openPlace=function(p){
   const safeP=String(p).replace(/'/g,"");
   openModal(`<h2>➕ Website पर लगाएं</h2><p class="mut">${p}</p>
   <div style="text-align:center;margin:10px 0">${isVid?`<video src="${src}" style="max-width:100%;max-height:200px" controls></video>`:`<img src="${src}" style="max-width:100%;max-height:200px;border-radius:10px">`}</div>
-  <label class="f">कहां लगाएं? *</label><select id="pl-sec" onchange="plFields()"><option value="leaders">🧑‍💼 नेतृत्व (Home + About)</option><option value="gallery">🖼 गैलरी</option><option value="news">📰 समाचार</option><option value="activities">📅 गतिविधियां</option></select>
+  <label class="f">कहां लगाएं? *</label><select id="pl-sec" onchange="plFields()"><option value="leaders">🧑‍💼 नेतृत्व (Home + About)</option><option value="gallery">🖼 गैलरी</option><option value="news">📰 समाचार</option><option value="activities">📅 गतिविधियां</option><option value="ads">📢 विज्ञापन (photo/video slide)</option></select>
   <div id="pl-fields"></div>
   <div style="margin-top:16px;display:flex;gap:10px"><button class="btn btn-s" onclick="savePlace('${safeP}')">💾 Save + Publish (LIVE!)</button><button class="btn btn-g" onclick="closeModal()">Cancel</button></div>`);
   plFields();
@@ -731,20 +786,25 @@ window.plFields=function(){
   if(s==="activities"){ h+=`<label class="f">Tag (Hindi)</label><input type="text" id="pl-tag" value="कार्यक्रम"><label class="f">Date</label><input type="text" id="pl-date" value="तिथि TB*"><label class="f">Place</label><input type="text" id="pl-place" value="स्थान TB*"><label class="f">Description</label><textarea id="pl-desc"></textarea>`; }
   if(s==="leaders"){ h+=`<label class="f"><input type="checkbox" id="pl-full"> Full-frame photo (बिना कटे)?</label>`; }
   if(s==="gallery"){ h+=`<label class="f"><input type="checkbox" id="pl-tall"> Tall frame?</label>`; }
+  if(s==="ads"){ h+=`<label class="f">विवरण (slide text)</label><textarea id="pl-desc" placeholder="विज्ञापन का विवरण…"></textarea>`; }
   $("#pl-fields").innerHTML=h;
 };
 window.savePlace=async function(p){
   const s=$("#pl-sec").value;
   const cap=(($("#pl-cap")||{}).value||"").trim();
   if(!cap){ toast("नाम / Caption भरें"); return; }
+  const isVid=/\.mp4(\?|$)/i.test(String(p));
+  if(isVid&&s!=="ads"){ toast("⚠ Video सिर्फ 📢 विज्ञापन में लगाएं (photo दूसरी जगह)"); return; }
   const d=await api("/api/data");
   const item={img:p,alt:cap,active:true};
   if(s==="leaders"){ Object.assign(item,{cap:cap,full:$("#pl-full").checked,w:480,h:544}); }
   if(s==="gallery"){ Object.assign(item,{cap:cap,cat:$("#pl-cat").value||"event",tall:$("#pl-tall").checked}); }
   if(s==="news"){ Object.assign(item,{cat:$("#pl-cat").value||"event",tag:$("#pl-tag").value,title:cap,date:$("#pl-date").value,desc:$("#pl-desc").value,share:cap}); }
   if(s==="activities"){ Object.assign(item,{cat:$("#pl-cat").value||"event",tag:$("#pl-tag").value,title:cap,date:$("#pl-date").value,place:$("#pl-place").value,meta:"",desc:$("#pl-desc").value}); }
+  if(s==="ads"){ Object.assign(item,{label:"विज्ञापन",title:cap,text:($("#pl-desc")||{value:""}).value||cap,cta:"संपर्क करें →",href:"tel:8318168274",theme:"house"}); }
   d.lists[s].push(item);
-  await api("/api/save",{method:"POST",body:JSON.stringify({kind:"list",id:s,value:d.lists[s]})});
+  try{ await api("/api/save",{method:"POST",body:JSON.stringify({kind:"list",id:s,value:d.lists[s]})}); }
+  catch(e){ toast("❌ Save नहीं हुआ: "+e.message); return; }
   closeModal(); toast("Publishing… 🚀");
   try{ await api("/api/publish",{method:"POST"}); await reloadData(); toast("🎉 Website पर LIVE हो गया!"); }
   catch(e){ toast(e.message); }
